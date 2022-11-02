@@ -312,7 +312,7 @@ class TDQN:
                                      (Epsilon-Greedy exploration technique).        
     """
 
-    def __init__(self, observationSpace, actionSpace, numberOfNeurons=numberOfNeurons, dropout=dropout, 
+    def __init__(self, observationSpace, actionSpace, model_params=None, numberOfNeurons=numberOfNeurons, dropout=dropout,
                  gamma=gamma, learningRate=learningRate, targetNetworkUpdate=targetNetworkUpdate,
                  epsilonStart=epsilonStart, epsilonEnd=epsilonEnd, epsilonDecay=epsilonDecay,
                  capacity=capacity, batchSize=batchSize):
@@ -339,6 +339,28 @@ class TDQN:
         
         OUTPUTS: /
         """
+        # Set variables from config file
+        if model_params:
+            if "numberOfNeurons" in model_params:
+                numberOfNeurons = model_params["numberOfNeurons"]
+            if "dropout" in model_params:
+                dropout = model_params["dropout"]
+            if "gamma" in model_params:
+                gamma = model_params["gamma"]
+            if "learningRate" in model_params:
+                learningRate = model_params["learningRate"]
+            if "targetNetworkUpdate" in model_params:
+                targetNetworkUpdate = model_params["targetNetworkUpdate"]
+            if "epsilonStart" in model_params:
+                epsilonStart = model_params["epsilonStart"]
+            if "epsilonEnd" in model_params:
+                epsilonEnd = model_params["epsilonEnd"]
+            if "epsilonDecay" in model_params:
+                epsilonDecay = model_params["epsilonDecay"]
+            if "capacity" in model_params:
+                capacity = model_params["capacity"]
+            if "batchSize" in model_params:
+                batchSize = model_params["batchSize"]
 
         # Initialise the random function with a new random seed
         random.seed(0)

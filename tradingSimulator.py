@@ -323,7 +323,7 @@ class TradingSimulator:
         #plt.show()
 
 
-    def simulateNewStrategy(self, strategyName, stockName,
+    def simulateNewStrategy(self, strategyName, stockName, run_config=None,
                             startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
                             observationSpace=observationSpace, actionSpace=actionSpace, 
                             money=money, stateLength=stateLength, transactionCosts=transactionCosts,
@@ -360,6 +360,43 @@ class TradingSimulator:
                  - trainingEnv: Trading environment related to the training phase.
                  - testingEnv: Trading environment related to the testing phase.
         """
+
+        # 0. SET VARIABLES FROM CONFIG
+        if run_config:
+            environment_params = run_config["environment"]
+
+            if "startingDate" in environment_params:
+                startingDate = environment_params["startingDate"]
+            if "endingDate" in run_config:
+                endingDate = environment_params["endingDate"]
+            if "splitingDate" in environment_params:
+                splitingDate = environment_params["splitingDate"]
+            if "observationSpace" in environment_params:
+                observationSpace = environment_params["observationSpace"]
+            if "actionSpace" in environment_params:
+                actionSpace = environment_params["actionSpace"]
+            if "money" in environment_params:
+                money = environment_params["money"]
+            if "stateLength" in environment_params:
+                stateLength = environment_params["stateLength"]
+            if "transactionCosts" in environment_params:
+                transactionCosts = environment_params["transactionCosts"]
+            if "bounds" in environment_params:
+                bounds = environment_params["bounds"]
+            if "step" in environment_params:
+                step = environment_params["step"]
+            if "numberOfEpisodes" in environment_params:
+                numberOfEpisodes = environment_params["numberOfEpisodes"]
+            if "verbose" in environment_params:
+                verbose = environment_params["verbose"]
+            if "plotTraining" in environment_params:
+                plotTraining = environment_params["plotTraining"]
+            if "rendering" in environment_params:
+                rendering = environment_params["rendering"]
+            if "showPerformance" in environment_params:
+                showPerformance = environment_params["showPerformance"]
+            if "saveStrategy" in environment_params:
+                saveStrategy = environment_params["saveStrategy"]
 
         # 1. INITIALIZATION PHASE
 
@@ -409,7 +446,10 @@ class TradingSimulator:
         if ai:
             strategyModule = importlib.import_module(str(strategy))
             className = getattr(strategyModule, strategy)
-            tradingStrategy = className(observationSpace, actionSpace)
+            if run_config:
+                tradingStrategy = className(observationSpace, actionSpace, run_config["model"])
+            else:
+                tradingStrategy = className(observationSpace, actionSpace)
         else:
             strategyModule = importlib.import_module('classicalStrategy')
             className = getattr(strategyModule, strategy)

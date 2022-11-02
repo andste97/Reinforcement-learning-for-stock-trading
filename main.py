@@ -11,6 +11,7 @@ Institution: University of Liège
 ###############################################################################
 
 import argparse
+import yaml
 
 from tradingSimulator import TradingSimulator
 
@@ -33,8 +34,14 @@ if(__name__ == '__main__'):
     strategy = args.strategy
     stock = args.stock
 
-    # Training and testing of the trading strategy specified for the stock (market) specified
-    simulator.simulateNewStrategy(strategy, stock, saveStrategy=False)
+    with open("./configurations/hyperparameters-default.yml", 'r') as yamlfile:
+        run_config = yaml.safe_load(yamlfile)
+
+        # Training and testing of the trading strategy specified for the stock (market) specified, using config from configuration file
+        simulator.simulateNewStrategy(strategy, stock, run_config)
+
+        # also works with no config file specified
+        # simulator.simulateNewStrategy(strategy, stock)
     """
     simulator.displayTestbench()
     simulator.analyseTimeSeries(stock)
