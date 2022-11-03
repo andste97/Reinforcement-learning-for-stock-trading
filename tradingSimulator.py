@@ -15,6 +15,7 @@ import sys
 import importlib
 import pickle
 import itertools
+import yaml
 
 import numpy as np
 import pandas as pd
@@ -323,7 +324,7 @@ class TradingSimulator:
         #plt.show()
 
 
-    def simulateNewStrategy(self, strategyName, stockName, run_config=None,
+    def simulateNewStrategy(self, strategyName, stockName, run_config_path=None,
                             startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
                             observationSpace=observationSpace, actionSpace=actionSpace, 
                             money=money, stateLength=stateLength, transactionCosts=transactionCosts,
@@ -362,7 +363,9 @@ class TradingSimulator:
         """
 
         # 0. SET VARIABLES FROM CONFIG
-        if run_config:
+        if run_config_path:
+            with open(run_config_path, 'r') as yamlfile:
+                run_config = yaml.safe_load(yamlfile)
             environment_params = run_config["environment"]
 
             if "startingDate" in environment_params:
