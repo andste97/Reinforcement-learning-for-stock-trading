@@ -66,7 +66,7 @@ class TradingEnv(gym.Env):
                 - render: Illustrate graphically the trading environment.
     """
 
-    def __init__(self, marketSymbol, startingDate, endingDate, money, stateLength=30,
+    def __init__(self, marketSymbol, startingDate, endingDate, money, context,stateLength=30,
                  transactionCosts=0, startingPoint=0):
         """
         GOAL: Object constructor initializing the trading environment by setting up
@@ -155,6 +155,38 @@ class TradingEnv(gym.Env):
         # If required, set a custom starting point for the trading activity
         if startingPoint:
             self.setStartingPoint(startingPoint)
+
+        ### add context
+        context_symbols = context.values()
+        for symbol in context_symbols:
+            csvName = "".join(['Context/', symbol, '_', startingDate, '_', endingDate])
+            exists = os.path.isfile(csvName + '.csv')
+            
+            # If affirmative, load the stock market data from the database
+            if(exists):
+                context_series = csvConverter.CSVToDataframe(csvName)
+            # Otherwise, download the stock market data from Yahoo Finance and save it in the database
+            else:  
+                downloader1 = YahooFinance()
+                downloader2 = AlphaVantage()
+                try:
+                    context_series = downloader1.getDailyData(symbol, startingDate, endingDate)
+                except:
+                    context_series = downloader2.getDailyData(symbol, startingDate, endingDate)
+
+                if saving == True:
+                    csvConverter.dataframeToCSV(csvName,context_series)
+
+            # Interpolate in case of missing data
+            context_series = context_series['Close'].to_frame()
+            context_series.replace(0.0, np.nan, inplace=True)
+            context_series.interpolate(method='linear', limit=5, limit_area='inside', inplace=True)
+            context_series.fillna(method='ffill', inplace=True)
+            context_series.fillna(method='bfill', inplace=True)
+            context_series.fillna(0, inplace=True)
+            context_series = context_series.add_suffix(f'_{symbol}')
+            self.data = pd.concat([self.data,context_series],axis=1)
+
 
 
     def reset(self):

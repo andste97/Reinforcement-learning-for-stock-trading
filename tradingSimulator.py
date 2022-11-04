@@ -400,7 +400,8 @@ class TradingSimulator:
                 showPerformance = environment_params["showPerformance"]
             if "saveStrategy" in environment_params:
                 saveStrategy = environment_params["saveStrategy"]
-
+            if "context" in environment_params:
+                context = environment_params["context"]
         # 1. INITIALIZATION PHASE
 
         # Retrieve the trading strategy information
@@ -443,10 +444,10 @@ class TradingSimulator:
         # 2. TRAINING PHASE
 
         # Initialize the trading environment associated with the training phase
-        trainingEnv = TradingEnv(stock, startingDate, splitingDate, money, stateLength, transactionCosts)
+        trainingEnv = TradingEnv(stock, startingDate, splitingDate, money, context,stateLength, transactionCosts)
 
         # Instanciate the strategy classes
-        if ai:
+        if ai: #TDQN
             strategyModule = importlib.import_module(str(strategy))
             className = getattr(strategyModule, strategy)
             if run_config:
@@ -459,7 +460,7 @@ class TradingSimulator:
             tradingStrategy = className()
 
         # Training of the trading strategy
-        trainingEnv = tradingStrategy.training(trainingEnv, trainingParameters=trainingParameters,
+        trainingEnv = tradingStrategy.training(trainingEnv, context,trainingParameters=trainingParameters,
                                                verbose=verbose, rendering=rendering,
                                                plotTraining=plotTraining, showPerformance=showPerformance)
 

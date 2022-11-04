@@ -39,7 +39,7 @@ environment:
   # Variables defining the default trading horizon
   startingDate: '2006-1-1'
   endingDate: '2022-1-1'
-  splitingDate: '2019-1-1'
+  splitingDate: '2018-1-1'
   
   # Variables defining the default observation and state spaces
   stateLength: 30
@@ -56,7 +56,7 @@ environment:
   # Variables specifying the default general training parameters
   bounds: [1, 30]
   step: 1
-  numberOfEpisodes: 75
+  numberOfEpisodes: 50
   
   # Dictionary listing the fictive stocks supported
   fictives: {
@@ -136,6 +136,16 @@ environment:
       'Coca Cola' : 'KO',
       'AB InBev' : 'ABI.BR',
       'Kirin' : '2503.T'
+  }
+
+  context: {
+    'S&P 500' : '^GSPC', 
+    'VIX' : '^VIX',
+    'Oil' : 'CL=F',
+    'Gold' : 'GC=F',
+    'US Treasury 5 years yield' : '^FVX',
+    'US Treasury 10 years yield' : '^TNX',
+    'US Treasury 30 years yield' : '^TYX'
   }
 
   # Dictionary listing the classical trading strategies supported
