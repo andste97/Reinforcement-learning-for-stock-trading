@@ -135,7 +135,8 @@ environment:
       'Toyota' : '7203.T',
       'Coca Cola' : 'KO',
       'AB InBev' : 'ABI.BR',
-      'Kirin' : '2503.T'
+      'Kirin' : '2503.T',
+      'Gamestop' : 'GME'
   }
 
   # Dictionary listing the classical trading strategies supported
