@@ -370,7 +370,7 @@ class TradingSimulator:
 
             if "startingDate" in environment_params:
                 startingDate = environment_params["startingDate"]
-            if "endingDate" in run_config:
+            if "endingDate" in environment_params:
                 endingDate = environment_params["endingDate"]
             if "splitingDate" in environment_params:
                 splitingDate = environment_params["splitingDate"]

@@ -21,7 +21,7 @@ import numpy as np
 from collections import deque
 from tqdm import tqdm
 from matplotlib import pyplot as plt
-
+import yaml
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -74,7 +74,10 @@ L2Factor = 0.000001
 
 # Default paramter related to the hardware acceleration (CUDA)
 GPUNumber = 0
-
+run_config_path = "./configurations/hyperparameters-default.yml"
+with open(run_config_path, 'r') as yamlfile:
+                run_config = yaml.safe_load(yamlfile)
+ending_date = run_config['environment']['endingDate']
 
 
 ###############################################################################
@@ -677,7 +680,7 @@ class TDQN:
             # Testing performance
             marketSymbol = trainingEnv.marketSymbol
             startingDate = trainingEnv.endingDate
-            endingDate = '2020-1-1'
+            endingDate = ending_date
             money = trainingEnv.data['Money'][0]
             stateLength = trainingEnv.stateLength
             transactionCosts = trainingEnv.transactionCosts
