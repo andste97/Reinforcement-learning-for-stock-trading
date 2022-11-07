@@ -134,11 +134,6 @@ class TradingEnv(gym.Env):
         self.data['Returns'] = 0.
 
         # Set the RL variables common to every OpenAI gym environments
-        self.state = [self.data['Close'][0:stateLength].tolist(),
-                      self.data['Low'][0:stateLength].tolist(),
-                      self.data['High'][0:stateLength].tolist(),
-                      self.data['Volume'][0:stateLength].tolist(),
-                      [0]]
         self.reward = 0.
         self.done = 0
 
@@ -178,6 +173,7 @@ class TradingEnv(gym.Env):
                     csvConverter.dataframeToCSV(csvName,context_series)
 
             # Interpolate in case of missing data
+            context_series = context_series.loc[context_series.index.intersection(self.data.index)]
             context_series = context_series['Close'].to_frame()
             context_series.replace(0.0, np.nan, inplace=True)
             context_series.interpolate(method='linear', limit=5, limit_area='inside', inplace=True)
@@ -186,6 +182,12 @@ class TradingEnv(gym.Env):
             context_series.fillna(0, inplace=True)
             context_series = context_series.add_suffix(f'_{symbol}')
             self.data = pd.concat([self.data,context_series],axis=1)
+        # list of lists
+        base_state = self.data[['Close' , 'Low' , 'High' , 'Volume']].iloc[0:stateLength].T.values.tolist()
+        context_state = self.data.filter(regex='^Close_',axis=1).iloc[0:stateLength].T.values.tolist()
+        self.state = base_state+context_state+[0]
+
+
 
 
 
@@ -207,11 +209,10 @@ class TradingEnv(gym.Env):
         self.data['Returns'] = 0.
 
         # Reset the RL variables common to every OpenAI gym environments
-        self.state = [self.data['Close'][0:self.stateLength].tolist(),
-                      self.data['Low'][0:self.stateLength].tolist(),
-                      self.data['High'][0:self.stateLength].tolist(),
-                      self.data['Volume'][0:self.stateLength].tolist(),
-                      [0]]
+        base_state = self.data[['Close' , 'Low' , 'High' , 'Volume']].iloc[0:self.stateLength].T.values.tolist()
+        context_state = self.data.filter(regex='^Close_',axis=1).iloc[0:self.stateLength].T.values.tolist()
+        self.state = base_state+context_state+[0]
+
         self.reward = 0.
         self.done = 0
 
@@ -444,13 +445,9 @@ class TradingEnv(gym.Env):
 
         # Setting a custom starting point
         self.t = np.clip(startingPoint, self.stateLength, len(self.data.index))
-
+        columns = ['Close','Low','High','Volume']+[i for i in self.data.columns if 'Close_' in i]
         # Set the RL variables common to every OpenAI gym environments
-        self.state = [self.data['Close'][self.t - self.stateLength : self.t].tolist(),
-                      self.data['Low'][self.t - self.stateLength : self.t].tolist(),
-                      self.data['High'][self.t - self.stateLength : self.t].tolist(),
-                      self.data['Volume'][self.t - self.stateLength : self.t].tolist(),
-                      [self.data['Position'][self.t - 1]]]
+        self.state = self.data[columns].iloc[self.t - self.stateLength : self.t].T.values.tolist() + [self.data['Position'][self.t - 1]]
         if(self.t == self.data.shape[0]):
             self.done = 1
     

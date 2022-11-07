@@ -207,8 +207,8 @@ class YahooFinance:
         """
         
         # Remove useless columns
-        dataframe['Close'] = dataframe['Adj Close']
-        del dataframe['Adj Close']
+        # dataframe['Close'] = dataframe['Adj Close']
+        # del dataframe['Adj Close']
         
         # Adapt the dataframe index and column names
         dataframe.index.names = ['Timestamp']

@@ -151,19 +151,13 @@ class DataAugmentation:
 
         # Creation of a new trading environment
         newTradingEnv = copy.deepcopy(tradingEnv)
-
+        columns = ['Close','High','Low','Volume'] + [i for i in newTradingEnv.data.columns if 'Close_' in i]
+        idx = newTradingEnv.data.iloc[:order].index
         # Application of a filtering (low-pass) operation
-        newTradingEnv.data['Close'] = newTradingEnv.data['Close'].rolling(window=order).mean()
-        newTradingEnv.data['Low'] = newTradingEnv.data['Low'].rolling(window=order).mean()
-        newTradingEnv.data['High'] = newTradingEnv.data['High'].rolling(window=order).mean()
-        newTradingEnv.data['Volume'] = newTradingEnv.data['Volume'].rolling(window=order).mean()
-        for i in range(order):
-            newTradingEnv.data['Close'][i] = tradingEnv.data['Close'][i]
-            newTradingEnv.data['Low'][i] = tradingEnv.data['Low'][i]
-            newTradingEnv.data['High'][i] = tradingEnv.data['High'][i]
-            newTradingEnv.data['Volume'][i] = tradingEnv.data['Volume'][i]
-        newTradingEnv.data['Open'] = newTradingEnv.data['Close'].shift(1)
-        newTradingEnv.data['Open'][0] = tradingEnv.data['Open'][0]
+        newTradingEnv.data[columns] = newTradingEnv.data[columns].rolling(window=order).mean()
+        newTradingEnv.data.loc[idx,columns] = tradingEnv.data[columns].iloc[0:order]
+        # newTradingEnv.data['Open'] = newTradingEnv.data['Close'].shift(1)
+        # newTradingEnv.data['Open'][0] = tradingEnv.data['Open'][0]
 
         # Return the new trading environment generated
         return newTradingEnv
@@ -181,14 +175,16 @@ class DataAugmentation:
         """
 
         # Application of the data augmentation techniques to generate the new trading environments
-        tradingEnvList = []
-        for shift in shiftRange:
-            tradingEnvShifted = self.shiftTimeSeries(tradingEnv, shift)
-            for stretch in stretchRange:
-                tradingEnvStretched = self.streching(tradingEnvShifted, stretch)
-                for order in filterRange:
-                    tradingEnvFiltered = self.lowPassFilter(tradingEnvStretched, order)
-                    for noise in noiseRange:
-                        tradingEnvList.append(self.noiseAddition(tradingEnvFiltered, noise))
+        # tradingEnvList = []
+        # for shift in shiftRange:
+        #     tradingEnvShifted = self.shiftTimeSeries(tradingEnv, shift)
+        #     for stretch in stretchRange:
+        #         tradingEnvStretched = self.streching(tradingEnvShifted, stretch)
+        #         for order in filterRange:
+        #             tradingEnvFiltered = self.lowPassFilter(tradingEnvStretched, order)
+        #             for noise in noiseRange:
+        #                 tradingEnvList.append(self.noiseAddition(tradingEnvFiltered, noise))
+        tradingEnvList = [self.lowPassFilter(tradingEnv)]
+
         return tradingEnvList
     

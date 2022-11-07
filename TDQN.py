@@ -454,10 +454,10 @@ class TDQN:
         """
 
         # Normalization of the RL state
-        closePrices = [state[0][i] for i in range(len(state[0]))]
-        lowPrices = [state[1][i] for i in range(len(state[1]))]
-        highPrices = [state[2][i] for i in range(len(state[2]))]
-        volumes = [state[3][i] for i in range(len(state[3]))]
+        closePrices = state[0]
+        lowPrices = state[1]
+        highPrices = state[2]
+        volumes = state[3]
 
         # 1. Close price => returns => MinMax normalization
         returns = [(closePrices[i]-closePrices[i-1])/closePrices[i-1] for i in range(1, len(closePrices))]
@@ -490,7 +490,12 @@ class TDQN:
             state[3] = [((x - coefficients[3][0])/(coefficients[3][1] - coefficients[3][0])) for x in volumes]
         else:
             state[3] = [0 for x in volumes]
-        
+        ### turn context into returns for each of them and min max them
+        for ii in range(4,len(state)):
+            context_series = state[ii]
+            returns = [(context_series[i]-context_series[i-1])/context_series[i-1] for i in range(1, len(context_series))]
+            max_return = max(returns)
+            state[ii] = [(x/(max_return)) for x in returns]
         # Process the state structure to obtain the appropriate format
         state = [item for sublist in state for item in sublist]
 
@@ -699,7 +704,7 @@ class TDQN:
                 for i in range(len(trainingEnvList)):
                     
                     # Set the initial RL variables
-                    coefficients = self.getNormalizationCoefficients(trainingEnvList[i])
+                    coefficients = self.getNormalizationCoefficients(trainingEnvList[i]) 
                     trainingEnvList[i].reset()
                     startingPoint = random.randrange(len(trainingEnvList[i].data.index))
                     trainingEnvList[i].setStartingPoint(startingPoint)
