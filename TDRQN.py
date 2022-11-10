@@ -178,7 +178,7 @@ class ReplayMemory:
 ################################### Class DQN #################################
 ###############################################################################
 
-class DQN(nn.Module):
+class DRQN(nn.Module):
     """
     GOAL: Implementing the Deep Neural Network of the DQN Reinforcement 
           Learning algorithm.
@@ -201,7 +201,7 @@ class DQN(nn.Module):
                 - forward: Forward pass of the Deep Neural Network.
     """
 
-    def __init__(self, numberOfInputs, numberOfOutputs, numberOfNeurons=numberOfNeurons, dropout=dropout):
+    def __init__(self, numberOfInputs, numberOfOutputs, numberOfNeurons=numberOfNeurons, numberOfRecurrentNeurons=32, dropout=dropout):
         """
         GOAL: Defining and initializing the Deep Neural Network of the
               DQN Reinforcement Learning algorithm.
@@ -215,7 +215,7 @@ class DQN(nn.Module):
         """
 
         # Call the constructor of the parent class (Pytorch torch.nn.Module)
-        super(DQN, self).__init__()
+        super(DRQN, self).__init__()
 
         # Definition of some Fully Connected layers
         self.fc1 = nn.Linear(numberOfInputs, numberOfNeurons)
@@ -243,6 +243,13 @@ class DQN(nn.Module):
         torch.nn.init.xavier_uniform_(self.fc4.weight)
         torch.nn.init.xavier_uniform_(self.fc5.weight)
 
+        # lstm layers
+        self.lstm1 = nn.LSTM(
+            input_size=numberOfOutputs,
+            hidden_size=2,
+            num_layers=1,
+            batch_first=True,
+        )
     
     def forward(self, input):
         """
@@ -258,14 +265,17 @@ class DQN(nn.Module):
         x = self.dropout3(F.leaky_relu(self.bn3(self.fc3(x))))
         x = self.dropout4(F.leaky_relu(self.bn4(self.fc4(x))))
         output = self.fc5(x)
+
+        output = self.lstm1(output)
+
         return output
 
 
 ###############################################################################
-################################ Class TDQN ###################################
+################################ Class TDRQN ###################################
 ###############################################################################
 
-class TDQN:
+class TDRQN:
     """
     GOAL: Implementing an intelligent trading agent based on the DQN
           Reinforcement Learning algorithm.
@@ -386,8 +396,8 @@ class TDQN:
         self.actionSpace = actionSpace
 
         # Set the two Deep Neural Networks of the DQN algorithm (policy and target)
-        self.policyNetwork = DQN(observationSpace, actionSpace, numberOfNeurons, dropout).to(self.device)
-        self.targetNetwork = DQN(observationSpace, actionSpace, numberOfNeurons, dropout).to(self.device)
+        self.policyNetwork = DRQN(observationSpace, actionSpace, numberOfNeurons, dropout).to(self.device)
+        self.targetNetwork = DRQN(observationSpace, actionSpace, numberOfNeurons, dropout).to(self.device)
         self.targetNetwork.load_state_dict(self.policyNetwork.state_dict())
         self.policyNetwork.eval()
         self.targetNetwork.eval()
@@ -544,7 +554,7 @@ class TDQN:
         # Choose the best action based on the RL policy
         with torch.no_grad():
             tensorState = torch.tensor(state, dtype=torch.float, device=self.device).unsqueeze(0)
-            QValues = self.policyNetwork(tensorState).squeeze(0)
+            QValues = self.policyNetwork(tensorState)[0].squeeze(0)
             Q, action = QValues.max(0)
             action = action.item()
             Q = Q.item()
@@ -616,12 +626,12 @@ class TDQN:
             done = torch.tensor(done, dtype=torch.float, device=self.device)
 
             # Compute the current Q values returned by the policy network
-            currentQValues = self.policyNetwork(state).gather(1, action.unsqueeze(1)).squeeze(1)
+            currentQValues = self.policyNetwork(state)[0].gather(1, action.unsqueeze(1)).squeeze(1)
 
             # Compute the next Q values returned by the target network
             with torch.no_grad():
-                nextActions = torch.max(self.policyNetwork(nextState), 1)[1]
-                nextQValues = self.targetNetwork(nextState).gather(1, nextActions.unsqueeze(1)).squeeze(1)
+                nextActions = torch.max(self.policyNetwork(nextState)[0], 1)[1]
+                nextQValues = self.targetNetwork(nextState)[0].gather(1, nextActions.unsqueeze(1)).squeeze(1)
                 expectedQValues = reward + gamma * nextQValues * (1 - done)
 
             # Compute the Huber loss
@@ -712,10 +722,9 @@ class TDQN:
                     if plotTraining:
                         totalReward = 0
 
-                    number_interactions = 0
                     # Interact with the training environment until termination
                     while done == 0:
-                        number_interactions += 1
+
                         # Choose an action according to the RL policy and the current RL state
                         action, _, _ = self.chooseActionEpsilonGreedy(state, previousAction)
                         
@@ -797,7 +806,7 @@ class TDQN:
         # If required, print the strategy performance in a table
         if showPerformance:
             analyser = PerformanceEstimator(trainingEnv.data)
-            analyser.displayPerformance('TDQN')
+            analyser.displayPerformance('TDRQN')
         
         # Closing of the tensorboard writer
         self.writer.close()
@@ -857,7 +866,7 @@ class TDQN:
         # If required, print the strategy performance in a table
         if showPerformance:
             analyser = PerformanceEstimator(testingEnv.data)
-            analyser.displayPerformance('TDQN')
+            analyser.displayPerformance('TDRQN')
         
         return testingEnv
 
