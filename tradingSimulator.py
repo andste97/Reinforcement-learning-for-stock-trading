@@ -400,6 +400,21 @@ class TradingSimulator:
                 showPerformance = environment_params["showPerformance"]
             if "saveStrategy" in environment_params:
                 saveStrategy = environment_params["saveStrategy"]
+            if "fictives" in environment_params:
+                fictives = environment_params["fictives"]
+            if "strategies" in environment_params:
+                strategies = environment_params["strategies"]
+            if "stocks" in environment_params:
+                stocks = environment_params["stocks"]
+            if "indices" in environment_params:
+                indices = environment_params["indices"]
+            if "companies" in environment_params:
+                companies = environment_params["companies"]
+            if "strategies" in environment_params:
+                strategies = environment_params["strategies"]
+            if "strategiesAI" in environment_params:
+                strategiesAI = environment_params["strategiesAI"]
+
 
         # 1. INITIALIZATION PHASE
 
