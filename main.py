@@ -37,7 +37,7 @@ if(__name__ == '__main__'):
 
     run_config_path = "./configurations/hyperparameters-default.yml"
     # Training and testing of the trading strategy specified for the stock (market) specified, using config from configuration file
-    simulator.simulateNewStrategy("TDRQN", stock, run_config_path)
+    simulator.simulateNewStrategy("TDQN", stock, run_config_path)
 
     # also works with no config file specified
     # simulator.simulateNewStrategy(strategy, stock)
