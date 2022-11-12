@@ -39,7 +39,7 @@ environment:
   # Variables defining the default trading horizon
   startingDate: '2006-1-1'
   endingDate: '2022-1-1'
-  splitingDate: '2019-1-1'
+  splittingDate: '2019-1-1'
   
   # Variables defining the default observation and state spaces
   stateLength: 30
@@ -152,3 +152,18 @@ environment:
       'TDQN' : 'TDQN',
       'TDRQN': 'TDRQN'
   }
+
+  # set output of simulator to verbose
+  verbose: true
+
+  # set simulator to plot training results
+  plotTraining: true
+
+  # set simulator to render the trading environment
+  rendering: true
+
+  # set simlator to output performance metrics after training and testing
+  showPerformance: true
+
+  # set simulator to save the strategy to the file system
+  saveStrategy: true
