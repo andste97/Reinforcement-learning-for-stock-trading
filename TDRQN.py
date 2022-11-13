@@ -21,7 +21,6 @@ import numpy as np
 from collections import deque
 from tqdm import tqdm
 from matplotlib import pyplot as plt
-import yaml
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -71,11 +70,8 @@ from tradingEnv import TradingEnv
 # L2Factor = 0.000001
 
 # Default paramter related to the hardware acceleration (CUDA)
-GPUNumber = 0
-run_config_path = "./configurations/hyperparameters-default.yml"
-with open(run_config_path, 'r') as yamlfile:
-    run_config = yaml.safe_load(yamlfile)
-ending_date = run_config['environment']['endingDate']
+# GPUNumber = 0
+
 
 
 ###############################################################################
@@ -263,7 +259,7 @@ class DQN(nn.Module):
 
 
 ###############################################################################
-################################ Class TDQN ###################################
+################################ Class TDRQN ###################################
 ###############################################################################
 
 class TDRQN:
@@ -271,7 +267,9 @@ class TDRQN:
     GOAL: Implementing an intelligent trading agent based on the DQN
           Reinforcement Learning algorithm.
 
-    VARIABLES:  - device: Hardware specification (CPU or GPU).
+    VARIABLES:
+                - model_params: Path to configuration file containing all env and model params
+                - device: Hardware specification (CPU or GPU).
                 - gamma: Discount factor of the DQN algorithm.
                 - learningRate: Learning rate of the ADAM optimizer.
                 - capacity: Capacity of the experience replay memory.
@@ -316,7 +314,7 @@ class TDRQN:
                                      (Epsilon-Greedy exploration technique).
     """
 
-    def __init__(self, observationSpace, actionSpace, model_params=None):
+    def __init__(self, observationSpace, actionSpace, run_config):
         """
         GOAL: Initializing the RL agent based on the DQN Reinforcement Learning
               algorithm, by setting up the DQN algorithm parameters as well as
@@ -324,6 +322,8 @@ class TDRQN:
 
         INPUTS: - observationSpace: Size of the RL observation space.
                 - actionSpace: Size of the RL action space.
+                - run_config: Path to configuration file containing all env and model params
+        Other inputs specified by configuration file:
                 - numberOfNeurons: Number of neurons per layer in the Deep Neural Network.
                 - dropout: Droupout probability value (handling of overfitting).
                 - gamma: Discount factor of the DQN algorithm.
@@ -341,30 +341,34 @@ class TDRQN:
         OUTPUTS: /
         """
         # Set variables from config file
-        if model_params:
-            self.numberOfNeurons = model_params["numberOfNeurons"]
-            self.dropout = model_params["dropout"]
-            self.gamma = model_params["gamma"]
-            self.learningRate = model_params["learningRate"]
-            self.targetNetworkUpdate = model_params["targetNetworkUpdate"]
-            self.learningUpdatePeriod = model_params["learningUpdatePeriod"]
-            self.experiencesRequired = model_params["experiencesRequired"]
-            self.epsilonStart = model_params["epsilonStart"]
-            self.epsilonEnd = model_params["epsilonEnd"]
-            self.epsilonDecay = model_params["epsilonDecay"]
-            self.capacity = model_params["capacity"]
-            self.batchSize = model_params["batchSize"]
-            self.L2Factor = model_params["L2Factor"]
-            self.alpha =  model_params["alpha"]
-            self.filterOrder = model_params["filterOrder"]
-            self.gradientClipping = model_params["gradientClipping"]
-            self.rewardClipping = model_params["rewardClipping"]
+        model_params = run_config["model"]
+
+        self.numberOfNeurons = model_params["numberOfNeurons"]
+        self.dropout = model_params["dropout"]
+        self.gamma = model_params["gamma"]
+        self.learningRate = model_params["learningRate"]
+        self.targetNetworkUpdate = model_params["targetNetworkUpdate"]
+        self.learningUpdatePeriod = model_params["learningUpdatePeriod"]
+        self.experiencesRequired = model_params["experiencesRequired"]
+        self.epsilonStart = model_params["epsilonStart"]
+        self.epsilonEnd = model_params["epsilonEnd"]
+        self.epsilonDecay = model_params["epsilonDecay"]
+        self.capacity = model_params["capacity"]
+        self.batchSize = model_params["batchSize"]
+        self.L2Factor = model_params["L2Factor"]
+        self.alpha =  model_params["alpha"]
+        self.filterOrder = model_params["filterOrder"]
+        self.gradientClipping = model_params["gradientClipping"]
+        self.rewardClipping = model_params["rewardClipping"]
+        self.GPUNumber = model_params["GPUNumber"]
+
+        self.ending_date = run_config['environment']['endingDate']
 
         # Initialise the random function with a new random seed
         random.seed(0)
 
         # Check availability of CUDA for the hardware (CPU or GPU)
-        self.device = torch.device('cuda:' + str(GPUNumber) if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda:' + str(self.GPUNumber) if torch.cuda.is_available() else 'cpu')
 
         # Set the Experience Replay mechnism
         self.replayMemory = ReplayMemory(self.capacity)
@@ -391,7 +395,12 @@ class TDRQN:
         self.iterations = 0
 
         # Initialization of the tensorboard writer
-        self.writer = SummaryWriter('runs/' + datetime.datetime.now().strftime("%d/%m/%Y-%H:%M:%S"))
+        run_time = datetime.datetime.now().strftime("%d.%m.%Y_%H-%M-%S")
+        self.writer = SummaryWriter('runs/' + run_time,
+                                    comment='strategy: TDRQN')
+        self.writer.add_text("TDRQN" + run_time, "Model-parameters: \n" + str(model_params) + "\n \n"
+                              "Environment-parameters: " + str(run_config["environment"]))
+        # using add_hparams for logging hyperparameters somehow does not seem to work
 
     def getNormalizationCoefficients(self, tradingEnv):
         """
@@ -661,7 +670,7 @@ class TDRQN:
             # Testing performance
             marketSymbol = trainingEnv.marketSymbol
             startingDate = trainingEnv.endingDate
-            endingDate = ending_date
+            endingDate = self.ending_date
             money = trainingEnv.data['Money'][0]
             stateLength = trainingEnv.stateLength
             transactionCosts = trainingEnv.transactionCosts
@@ -778,7 +787,7 @@ class TDRQN:
         # If required, print the strategy performance in a table
         if showPerformance:
             analyser = PerformanceEstimator(trainingEnv.data)
-            analyser.displayPerformance('TDQN')
+            analyser.displayPerformance('TDRQN')
 
         # Closing of the tensorboard writer
         self.writer.close()
@@ -836,7 +845,7 @@ class TDRQN:
         # If required, print the strategy performance in a table
         if showPerformance:
             analyser = PerformanceEstimator(testingEnv.data)
-            analyser.displayPerformance('TDQN')
+            analyser.displayPerformance('TDRQN')
 
         return testingEnv
 

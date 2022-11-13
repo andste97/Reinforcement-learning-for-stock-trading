@@ -62,46 +62,47 @@ class TradingSimulator:
                                 on a certain stock of the testbench.
     """
 
-    def __init__(self, run_config_path=None):
+    def __init__(self, run_config_path='./configurations/hyperparameters-default.yml'):
         # 0. SET VARIABLES FROM CONFIG
-        if run_config_path:
-            with open(run_config_path, 'r') as yamlfile:
-                self.run_config = yaml.safe_load(yamlfile)
-            environment_params = self.run_config["environment"]
+        with open(run_config_path, 'r') as yamlfile:
+            self.run_config = yaml.safe_load(yamlfile)
+        environment_params = self.run_config["environment"]
 
-            self.startingDate = environment_params["startingDate"]
-            self.endingDate = environment_params["endingDate"]
-            self.splittingDate = environment_params["splittingDate"]
-            self.actionSpace = environment_params["actionSpace"]
-            self.money = environment_params["money"]
-            self.stateLength = environment_params["stateLength"]
-            self.bounds = environment_params["bounds"]
-            self.step = environment_params["step"]
-            self.numberOfEpisodes = environment_params["numberOfEpisodes"]
-            self.verbose = environment_params["verbose"]
-            self.plotTraining = environment_params["plotTraining"]
-            self.rendering = environment_params["rendering"]
-            self.showPerformance = environment_params["showPerformance"]
-            self.saveStrategy = environment_params["saveStrategy"]
-            self.fictives = environment_params["fictives"]
-            self.strategies = environment_params["strategies"]
-            self.stocks = environment_params["stocks"]
-            self.indices = environment_params["indices"]
-            self.companies = environment_params["companies"]
-            self.strategies = environment_params["strategies"]
-            self.strategiesAI = environment_params["strategiesAI"]
-            self.percentageCosts = environment_params["percentageCosts"]
+        self.startingDate = environment_params["startingDate"]
+        self.endingDate = environment_params["endingDate"]
+        self.splittingDate = environment_params["splittingDate"]
+        self.actionSpace = environment_params["actionSpace"]
+        self.money = environment_params["money"]
+        self.stateLength = environment_params["stateLength"]
+        self.bounds = environment_params["bounds"]
+        self.step = environment_params["step"]
+        self.numberOfEpisodes = environment_params["numberOfEpisodes"]
+        self.verbose = environment_params["verbose"]
+        self.plotTraining = environment_params["plotTraining"]
+        self.rendering = environment_params["rendering"]
+        self.showPerformance = environment_params["showPerformance"]
+        self.saveStrategy = environment_params["saveStrategy"]
+        self.fictives = environment_params["fictives"]
+        self.strategies = environment_params["strategies"]
+        self.stocks = environment_params["stocks"]
+        self.indices = environment_params["indices"]
+        self.companies = environment_params["companies"]
+        self.strategies = environment_params["strategies"]
+        self.strategiesAI = environment_params["strategiesAI"]
+        self.percentageCosts = environment_params["percentageCosts"]
 
-            self.observationSpace = 1 + (self.stateLength - 1) * 4
-            # Variables setting up the default transaction costs
-            self.transactionCosts = self.percentageCosts[1] / 100
+        self.observationSpace = 1 + (self.stateLength - 1) * 4
+        # Variables setting up the default transaction costs
+        self.transactionCosts = self.percentageCosts[1] / 100
 
     def displayTestbench(self):
         """
         GOAL: Display consecutively all the stocks included in the
               testbench (trading indices and companies).
         
-        INPUTS: - startingDate: Beginning of the trading horizon.
+        INPUTS: None
+        Other inputs specified by configuration:
+                - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
         
         OUTPUTS: /
@@ -124,6 +125,7 @@ class TradingSimulator:
               price time series.
         
         INPUTS: - stockName: Name of the stock (in the testbench).
+        Other inputs specified by configuration:
                 - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
                 - splitingDate: Spliting date between the training dataset
@@ -244,6 +246,7 @@ class TradingSimulator:
         
         INPUTS: - strategyName: Name of the trading strategy.
                 - stockName: Name of the stock (in the testbench).
+        Other inputs specified by configuration:
                 - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
                 - splitingDate: Spliting date between the training dataset
@@ -318,10 +321,7 @@ class TradingSimulator:
         if ai:
             strategyModule = importlib.import_module(str(strategy))
             className = getattr(strategyModule, strategy)
-            if self.run_config:
-                tradingStrategy = className(self.observationSpace, self.actionSpace, self.run_config["model"])
-            else:
-                tradingStrategy = className(self.observationSpace, self.actionSpace)
+            tradingStrategy = className(self.observationSpace, self.actionSpace, self.run_config)
         else:
             strategyModule = importlib.import_module('classicalStrategy')
             className = getattr(strategyModule, strategy)
@@ -370,6 +370,7 @@ class TradingSimulator:
         
         INPUTS: - strategyName: Name of the trading strategy.
                 - stockName: Name of the stock (in the testbench).
+        Other inputs specified by configuration:
                 - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
                 - splitingDate: Spliting date between the training dataset
@@ -436,7 +437,7 @@ class TradingSimulator:
             if ai:
                 strategyModule = importlib.import_module(strategy)
                 className = getattr(strategyModule, strategy)
-                tradingStrategy = className(self.observationSpace, self.actionSpace)
+                tradingStrategy = className(self.observationSpace, self.actionSpace, self.run_config)
                 tradingStrategy.loadModel(fileName)
             else:
                 fileHandler = open(fileName, 'rb') 
@@ -468,6 +469,7 @@ class TradingSimulator:
               testbench of stocks designed.
         
         INPUTS: - strategyName: Name of the trading strategy.
+        Other inputs specified by configuration:
                 - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
                 - splitingDate: Spliting date between the training dataset
@@ -536,6 +538,7 @@ class TradingSimulator:
               trading strategies on a certain stock of the testbench.
         
         INPUTS: - stockName: Name of the stock (in the testbench).
+        Other inputs specified by configuration:
                 - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
                 - splitingDate: Spliting date between the training dataset
