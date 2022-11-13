@@ -41,8 +41,8 @@ if(__name__ == '__main__'):
 
     # simulator.displayTestbench()
     # simulator.analyseTimeSeries(stock)
-    # simulator.simulateNewStrategy(strategy, stock, saveStrategy=False)
+    # simulator.simulateNewStrategy(strategy, stock)
     # simulator.simulateExistingStrategy(strategy, stock)
-    # simulator.evaluateStrategy(strategy, saveStrategy=False)
+    # simulator.evaluateStrategy(strategy)
     # simulator.evaluateStock(stock)
 
