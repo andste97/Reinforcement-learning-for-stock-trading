@@ -491,14 +491,14 @@ class TDQN:
         else:
             state[3] = [0 for x in volumes]
         ### turn context into returns for each of them and min max them
-        for ii in range(4,len(state)):
+        for ii in range(4,len(state)-1):
             context_series = state[ii]
             returns = [(context_series[i]-context_series[i-1])/context_series[i-1] for i in range(1, len(context_series))]
             max_return = max(returns)
             state[ii] = [(x/(max_return)) for x in returns]
         # Process the state structure to obtain the appropriate format
+        state[-1] = [state[-1]]
         state = [item for sublist in state for item in sublist]
-
         return state
 
     
