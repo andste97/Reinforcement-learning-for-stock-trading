@@ -468,7 +468,7 @@ class TradingSimulator:
         # 3. TESTING PHASE
 
         # Initialize the trading environment associated with the testing phase
-        testingEnv = TradingEnv(stock, splitingDate, endingDate, money, stateLength, transactionCosts)
+        testingEnv = TradingEnv(stock, splitingDate, endingDate, money, context,stateLength, transactionCosts)
 
         # Testing of the trading strategy
         testingEnv = tradingStrategy.testing(trainingEnv, testingEnv, rendering=rendering, showPerformance=showPerformance)
