@@ -43,6 +43,7 @@ if(__name__ == '__main__'):
     # simulator.analyseTimeSeries(stock)
     # simulator.simulateNewStrategy(strategy, stock)
     # simulator.simulateExistingStrategy(strategy, stock)
-    # simulator.evaluateStrategy(strategy)
+    # simulator.evaluateStrategy("TDRQN")
+    # simulator.evaluateStrategyOnStocks("TDRQN", ["Apple", "Google", "Volkswagen"])
     # simulator.evaluateStock(stock)
 

@@ -5,6 +5,7 @@ Goal: Accurately estimating the performance of a trading strategy.
 Authors: Thibaut Théate and Damien Ernst
 Institution: University of Liège
 """
+import os
 
 ###############################################################################
 ################################### Imports ###################################
@@ -203,6 +204,8 @@ class PerformanceEstimator:
                      [capital[peak], capital[through]], 'o', color='Red', markersize=5)
             plt.xlabel('Time')
             plt.ylabel('Price')
+            if not os.path.exists('Figures/'):
+                os.makedirs('Figures/')
             plt.savefig(''.join(['Figures/', 'MaximumDrawDown', '.png']))
             #plt.show()
 

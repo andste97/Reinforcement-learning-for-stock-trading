@@ -350,6 +350,8 @@ class TradingSimulator:
 
         # If required, save the trading strategy with Pickle
         if(self.saveStrategy):
+            if not os.path.exists('Strategies/'):
+                os.makedirs('Strategies/')
             fileName = "".join(["Strategies/", strategy, "_", stock, "_", self.startingDate, "_", self.splittingDate])
             if ai:
                 tradingStrategy.saveModel(fileName)
@@ -493,15 +495,52 @@ class TradingSimulator:
         OUTPUTS: - performanceTable: Table summarizing the performance of
                                      a trading strategy.
         """
+        return self.evaluateStrategyOnStocks(strategyName, self.stocks.keys())
+
+
+
+    def evaluateStrategyOnStocks(self, strategyName, stockNames: []):
+        """
+        GOAL: Evaluate the performance of a trading strategy on the specified stocks.
+
+        INPUTS: - strategyName: Name of the trading strategy.
+                - stockNames: List of stock names to test the strategy on
+        Other inputs specified by configuration:
+                - startingDate: Beginning of the trading horizon.
+                - endingDate: Ending of the trading horizon.
+                - splitingDate: Spliting date between the training dataset
+                                and the testing dataset.
+                - observationSpace: Size of the RL observation space.
+                - actionSpace: Size of the RL action space.
+                - money: Initial capital at the disposal of the agent.
+                - stateLength: Length of the trading agent state.
+                - transactionCosts: Additional costs incurred while trading
+                                    (e.g. 0.01 <=> 1% of transaction costs).
+                - bounds: Bounds of the parameter search space (training).
+                - step: Step of the parameter search space (training).
+                - numberOfEpisodes: Number of epsiodes of the RL training phase.
+                - verbose: Enable the printing of simulation feedbacks.
+                - plotTraining: Enable the plotting of the training results.
+                - rendering: Enable the rendering of the trading environment.
+                - showPerformance: Enable the printing of a table summarizing
+                                   the trading strategy performance.
+                - saveStrategy: Enable the saving of the trading strategy.
+
+        OUTPUTS: - performanceTable: Table summarizing the performance of
+                                     a trading strategy.
+        """
 
         # Initialization of some variables
-        performanceTable = [["Profit & Loss (P&L)"], ["Annualized Return"], ["Annualized Volatility"], ["Sharpe Ratio"], ["Sortino Ratio"], ["Maximum DrawDown"], ["Maximum DrawDown Duration"], ["Profitability"], ["Ratio Average Profit/Loss"], ["Skewness"]]
+        performanceTable = [["Profit & Loss (P&L)"], ["Annualized Return"], ["Annualized Volatility"], ["Sharpe Ratio"],
+                            ["Sortino Ratio"], ["Maximum DrawDown"], ["Maximum DrawDown Duration"], ["Profitability"],
+                            ["Ratio Average Profit/Loss"], ["Skewness"]]
         headers = ["Performance Indicator"]
 
+        selected_stocks = {stockName: self.stocks[stockName] for stockName in stockNames}
         # Loop through each stock included in the testbench (progress bar)
         print("Trading strategy evaluation progression:")
-        #for stock in tqdm(itertools.chain(indices, companies)):
-        for stock in tqdm(self.stocks):
+        # for stock in tqdm(itertools.chain(indices, companies)):
+        for stock in tqdm(selected_stocks):
 
             # Simulation of the trading strategy on the current stock
             try:
@@ -514,7 +553,7 @@ class TradingSimulator:
             # Retrieve the trading performance associated with the trading strategy
             analyser = PerformanceEstimator(testingEnv.data)
             performance = analyser.computePerformance()
-            
+
             # Get the required format for the display of the performance table
             headers.append(stock)
             for i in range(len(performanceTable)):
@@ -529,7 +568,6 @@ class TradingSimulator:
         print("Average Sharpe Ratio: " + "{0:.3f}".format(sharpeRatio))
 
         return performanceTable
-
 
     def evaluateStock(self, stockName):
 
