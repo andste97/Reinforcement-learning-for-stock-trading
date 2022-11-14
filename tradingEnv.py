@@ -154,6 +154,8 @@ class TradingEnv(gym.Env):
         ### add context
         context_symbols = context.values()
         for symbol in context_symbols:
+            if not os.path.exists('./Context/'):
+                os.makedirs('./Context/')
             csvName = "".join(['Context/', symbol, '_', startingDate, '_', endingDate])
             exists = os.path.isfile(csvName + '.csv')
             
