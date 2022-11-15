@@ -156,7 +156,7 @@ class TradingEnv(gym.Env):
         for symbol in context_symbols:
             if not os.path.exists('./Context/'):
                 os.makedirs('./Context/')
-            csvName = "".join(['Context/', symbol, '_', startingDate, '_', endingDate])
+            csvName = "".join(['./Context/', symbol, '_', startingDate, '_', endingDate])
             exists = os.path.isfile(csvName + '.csv')
             
             # If affirmative, load the stock market data from the database
@@ -175,7 +175,8 @@ class TradingEnv(gym.Env):
                     csvConverter.dataframeToCSV(csvName,context_series)
 
             # Interpolate in case of missing data
-            context_series = context_series.loc[context_series.index.intersection(self.data.index)]
+
+            context_series = context_series.reindex(self.data.index)
             context_series = context_series['Close'].to_frame()
             context_series.replace(0.0, np.nan, inplace=True)
             context_series.interpolate(method='linear', limit=5, limit_area='inside', inplace=True)
@@ -184,6 +185,7 @@ class TradingEnv(gym.Env):
             context_series.fillna(0, inplace=True)
             context_series = context_series.add_suffix(f'_{symbol}')
             self.data = pd.concat([self.data,context_series],axis=1)
+
         # list of lists
         base_state = self.data[['Close' , 'Low' , 'High' , 'Volume']].iloc[0:stateLength].T.values.tolist()
         context_state = self.data.filter(regex='^Close_',axis=1).iloc[0:stateLength].T.values.tolist()
