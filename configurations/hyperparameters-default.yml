@@ -90,13 +90,13 @@ environment:
       'HSBC' : 'HSBC',
       'CCB' : '0939.HK',
       'ExxonMobil' : 'XOM',
-      'Shell' : 'RDSA.AS',
-      'PetroChina' : 'PTR',
+      'Shell' : 'SHEL',
+      'PetroChina' : '0857.HK',
       'Tesla' : 'TSLA',
       'Volkswagen' : 'VOW3.DE',
       'Toyota' : '7203.T',
       'Coca Cola' : 'KO',
-      'AB InBev' : 'ABI.BR',
+      'AB InBev' : 'BUD',
       'Kirin' : '2503.T'
   }
 
@@ -128,13 +128,13 @@ environment:
       'HSBC' : 'HSBC',
       'CCB' : '0939.HK',
       'ExxonMobil' : 'XOM',
-      'Shell' : 'RDSA.AS',
-      'PetroChina' : 'PTR',
+      'Shell' : 'SHEL',
+      'PetroChina' : '0857.HK',
       'Tesla' : 'TSLA',
       'Volkswagen' : 'VOW3.DE',
       'Toyota' : '7203.T',
       'Coca Cola' : 'KO',
-      'AB InBev' : 'ABI.BR',
+      'AB InBev' : 'BUD',
       'Kirin' : '2503.T',
       'Gamestop' : 'GME'
   }
