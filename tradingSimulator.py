@@ -34,127 +34,6 @@ from TDQN import TDQN
 
 
 ###############################################################################
-################################ Global variables #############################
-###############################################################################
-
-# Variables defining the default trading horizon
-startingDate = '2012-1-1'
-endingDate = '2020-1-1'
-splitingDate = '2018-1-1'
-
-# Variables defining the default observation and state spaces
-stateLength = 30
-observationSpace = 1 + (stateLength-1)*4
-actionSpace = 2
-
-# Variables setting up the default transaction costs
-percentageCosts = [0, 0.1, 0.2]
-transactionCosts = percentageCosts[1]/100
-
-# Variables specifying the default capital at the disposal of the trader
-money = 100000
-
-# Variables specifying the default general training parameters
-bounds = [1, 30]
-step = 1
-numberOfEpisodes = 50
-
-# Dictionary listing the fictive stocks supported
-fictives = {
-    'Linear Upward' : 'LINEARUP',
-    'Linear Downward' : 'LINEARDOWN',
-    'Sinusoidal' : 'SINUSOIDAL',
-    'Triangle' : 'TRIANGLE',
-}
-
- # Dictionary listing the 30 stocks considered as testbench
-stocks = {
-    'Dow Jones' : 'DIA',
-    'S&P 500' : 'SPY',
-    'NASDAQ 100' : 'QQQ',
-    'FTSE 100' : 'EZU',
-    'Nikkei 225' : 'EWJ',
-    'Google' : 'GOOGL',
-    'Apple' : 'AAPL',
-    'Facebook' : 'FB',
-    'Amazon' : 'AMZN',
-    'Microsoft' : 'MSFT',
-    'Twitter' : 'TWTR',
-    'Nokia' : 'NOK',
-    'Philips' : 'PHIA.AS',
-    'Siemens' : 'SIE.DE',
-    'Baidu' : 'BIDU',
-    'Alibaba' : 'BABA',
-    'Tencent' : '0700.HK',
-    'Sony' : '6758.T',
-    'JPMorgan Chase' : 'JPM',
-    'HSBC' : 'HSBC',
-    'CCB' : '0939.HK',
-    'ExxonMobil' : 'XOM',
-    'Shell' : 'RDSA.AS',
-    'PetroChina' : 'PTR',
-    'Tesla' : 'TSLA',
-    'Volkswagen' : 'VOW3.DE',
-    'Toyota' : '7203.T',
-    'Coca Cola' : 'KO',
-    'AB InBev' : 'ABI.BR',
-    'Kirin' : '2503.T'
-}
-
-# Dictionary listing the 5 trading indices considered as testbench
-indices = {
-    'Dow Jones' : 'DIA',
-    'S&P 500' : 'SPY',
-    'NASDAQ 100' : 'QQQ',
-    'FTSE 100' : 'EZU',
-    'Nikkei 225' : 'EWJ'
-}
-
-# Dictionary listing the 25 company stocks considered as testbench
-companies = {
-    'Google' : 'GOOGL',
-    'Apple' : 'AAPL',
-    'Facebook' : 'FB',
-    'Amazon' : 'AMZN',
-    'Microsoft' : 'MSFT',
-    'Twitter' : 'TWTR',
-    'Nokia' : 'NOK',
-    'Philips' : 'PHIA.AS',
-    'Siemens' : 'SIE.DE',
-    'Baidu' : 'BIDU',
-    'Alibaba' : 'BABA',
-    'Tencent' : '0700.HK',
-    'Sony' : '6758.T',
-    'JPMorgan Chase' : 'JPM',
-    'HSBC' : 'HSBC',
-    'CCB' : '0939.HK',
-    'ExxonMobil' : 'XOM',
-    'Shell' : 'RDSA.AS',
-    'PetroChina' : 'PTR',
-    'Tesla' : 'TSLA',
-    'Volkswagen' : 'VOW3.DE',
-    'Toyota' : '7203.T',
-    'Coca Cola' : 'KO',
-    'AB InBev' : 'ABI.BR',
-    'Kirin' : '2503.T'
-}
-
-# Dictionary listing the classical trading strategies supported
-strategies = {
-    'Buy and Hold' : 'BuyAndHold',
-    'Sell and Hold' : 'SellAndHold',
-    'Trend Following Moving Averages' : 'MovingAveragesTF',
-    'Mean Reversion Moving Averages' : 'MovingAveragesMR'
-}
-
-# Dictionary listing the AI trading strategies supported
-strategiesAI = {
-    'TDQN' : 'TDQN'
-}
-
-
-
-###############################################################################
 ########################### Class TradingSimulator ############################
 ###############################################################################
 
@@ -183,34 +62,71 @@ class TradingSimulator:
                                 on a certain stock of the testbench.
     """
 
-    def displayTestbench(self, startingDate=startingDate, endingDate=endingDate):
+    def __init__(self, run_config_path='./configurations/hyperparameters-default.yml'):
+        # 0. SET VARIABLES FROM CONFIG
+        with open(run_config_path, 'r') as yamlfile:
+            self.run_config = yaml.safe_load(yamlfile)
+        environment_params = self.run_config["environment"]
+
+        self.startingDate = environment_params["startingDate"]
+        self.endingDate = environment_params["endingDate"]
+        self.splittingDate = environment_params["splittingDate"]
+        self.actionSpace = environment_params["actionSpace"]
+        self.money = environment_params["money"]
+        self.stateLength = environment_params["stateLength"]
+        self.bounds = environment_params["bounds"]
+        self.step = environment_params["step"]
+        self.numberOfEpisodes = environment_params["numberOfEpisodes"]
+        self.verbose = environment_params["verbose"]
+        self.plotTraining = environment_params["plotTraining"]
+        self.rendering = environment_params["rendering"]
+        self.showPerformance = environment_params["showPerformance"]
+        self.saveStrategy = environment_params["saveStrategy"]
+        self.fictives = environment_params["fictives"]
+        self.strategies = environment_params["strategies"]
+        self.stocks = environment_params["stocks"]
+        self.indices = environment_params["indices"]
+        self.companies = environment_params["companies"]
+        self.strategies = environment_params["strategies"]
+        self.strategiesAI = environment_params["strategiesAI"]
+        self.percentageCosts = environment_params["percentageCosts"]
+        self.context = environment_params["context"]
+
+        self.observationSpace = 1 + (self.stateLength - 1) * (4+len(self.context))
+        # Variables setting up the default transaction costs
+        self.transactionCosts = self.percentageCosts[1] / 100
+
+    def displayTestbench(self):
         """
         GOAL: Display consecutively all the stocks included in the
               testbench (trading indices and companies).
         
-        INPUTS: - startingDate: Beginning of the trading horizon.
+        INPUTS: None
+        Other inputs specified by configuration:
+                - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
         
         OUTPUTS: /
         """
 
         # Display the stocks included in the testbench (trading indices)
-        for _, stock in indices.items():
-            env = TradingEnv(stock, startingDate, endingDate, 0)
+        for _, stock in self.indices.items():
+            env = TradingEnv(stock, self.startingDate, self.endingDate, 0)
             env.render() 
 
         # Display the stocks included in the testbench (companies)
-        for _, stock in companies.items():
-            env = TradingEnv(stock, startingDate, endingDate, 0)
+        for _, stock in self.companies.items():
+            env = TradingEnv(stock, self.startingDate, self.endingDate, 0)
             env.render()
 
 
-    def analyseTimeSeries(self, stockName, startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate):           
+    def analyseTimeSeries(self, stockName):
         """
         GOAL: Perform a detailled analysis of the stock market
               price time series.
         
         INPUTS: - stockName: Name of the stock (in the testbench).
+        Other inputs specified by configuration:
                 - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
                 - splitingDate: Spliting date between the training dataset
@@ -220,27 +136,27 @@ class TradingSimulator:
         """
 
         # Retrieve the trading stock information
-        if(stockName in fictives):
-            stock = fictives[stockName]
-        elif(stockName in indices):
-            stock = indices[stockName]
-        elif(stockName in companies):
-            stock = companies[stockName]    
+        if(stockName in self.fictives):
+            stock = self.fictives[stockName]
+        elif(stockName in self.indices):
+            stock = self.indices[stockName]
+        elif(stockName in self.companies):
+            stock = self.companies[stockName]
         # Error message if the stock specified is not valid or not supported
         else:
             print("The stock specified is not valid, only the following stocks are supported:")
-            for stock in fictives:
+            for stock in self.fictives:
                 print("".join(['- ', stock]))
-            for stock in indices:
+            for stock in self.indices:
                 print("".join(['- ', stock]))
-            for stock in companies:
+            for stock in self.companies:
                 print("".join(['- ', stock]))
             raise SystemError("Please check the stock specified.")
         
         # TRAINING DATA
         print("\n\n\nAnalysis of the TRAINING phase time series")
         print("------------------------------------------\n")
-        trainingEnv = TradingEnv(stock, startingDate, splitingDate, 0)
+        trainingEnv = TradingEnv(stock, self.startingDate, self.splittingDate, 0)
         timeSeries = trainingEnv.data['Close']
         analyser = TimeSeriesAnalyser(timeSeries)
         analyser.timeSeriesDecomposition()
@@ -250,7 +166,7 @@ class TradingSimulator:
         # TESTING DATA
         print("\n\n\nAnalysis of the TESTING phase time series")
         print("------------------------------------------\n")
-        testingEnv = TradingEnv(stock, splitingDate, endingDate, 0)
+        testingEnv = TradingEnv(stock, self.splittingDate, self.endingDate, 0)
         timeSeries = testingEnv.data['Close']
         analyser = TimeSeriesAnalyser(timeSeries)
         analyser.timeSeriesDecomposition()
@@ -260,7 +176,7 @@ class TradingSimulator:
         # ENTIRE TRADING DATA
         print("\n\n\nAnalysis of the entire time series (both training and testing phases)")
         print("---------------------------------------------------------------------\n")
-        tradingEnv = TradingEnv(stock, startingDate, endingDate, 0)
+        tradingEnv = TradingEnv(stock, self.startingDate, self.endingDate, 0)
         timeSeries = tradingEnv.data['Close']
         analyser = TimeSeriesAnalyser(timeSeries)
         analyser.timeSeriesDecomposition()
@@ -314,8 +230,8 @@ class TradingSimulator:
                  'v', markersize=5, color='red')
 
         # Plot the vertical line seperating the training and testing datasets
-        ax1.axvline(pd.Timestamp(splitingDate), color='black', linewidth=2.0)
-        ax2.axvline(pd.Timestamp(splitingDate), color='black', linewidth=2.0)
+        ax1.axvline(pd.Timestamp(self.splittingDate), color='black', linewidth=2.0)
+        ax2.axvline(pd.Timestamp(self.splittingDate), color='black', linewidth=2.0)
         
         # Generation of the two legends and plotting
         ax1.legend(["Price", "Long",  "Short", "Train/Test separation"])
@@ -324,19 +240,14 @@ class TradingSimulator:
         #plt.show()
 
 
-    def simulateNewStrategy(self, strategyName, stockName, run_config_path=None,
-                            startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
-                            observationSpace=observationSpace, actionSpace=actionSpace, 
-                            money=money, stateLength=stateLength, transactionCosts=transactionCosts,
-                            bounds=bounds, step=step, numberOfEpisodes=numberOfEpisodes,
-                            verbose=True, plotTraining=True, rendering=True, showPerformance=True,
-                            saveStrategy=False):
+    def simulateNewStrategy(self, strategyName, stockName):
         """
         GOAL: Simulate a new trading strategy on a certain stock included in the
               testbench, with both learning and testing phases.
         
         INPUTS: - strategyName: Name of the trading strategy.
                 - stockName: Name of the stock (in the testbench).
+        Other inputs specified by configuration:
                 - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
                 - splitingDate: Spliting date between the training dataset
@@ -362,81 +273,41 @@ class TradingSimulator:
                  - testingEnv: Trading environment related to the testing phase.
         """
 
-        # 0. SET VARIABLES FROM CONFIG
-        if run_config_path:
-            with open(run_config_path, 'r') as yamlfile:
-                run_config = yaml.safe_load(yamlfile)
-            environment_params = run_config["environment"]
-
-            if "startingDate" in environment_params:
-                startingDate = environment_params["startingDate"]
-            if "endingDate" in environment_params:
-                endingDate = environment_params["endingDate"]
-            if "splitingDate" in environment_params:
-                splitingDate = environment_params["splitingDate"]
-            if "observationSpace" in environment_params:
-                observationSpace = environment_params["observationSpace"]
-            if "actionSpace" in environment_params:
-                actionSpace = environment_params["actionSpace"]
-            if "money" in environment_params:
-                money = environment_params["money"]
-            if "stateLength" in environment_params:
-                stateLength = environment_params["stateLength"]
-            if "transactionCosts" in environment_params:
-                transactionCosts = environment_params["transactionCosts"]
-            if "bounds" in environment_params:
-                bounds = environment_params["bounds"]
-            if "step" in environment_params:
-                step = environment_params["step"]
-            if "numberOfEpisodes" in environment_params:
-                numberOfEpisodes = environment_params["numberOfEpisodes"]
-            if "verbose" in environment_params:
-                verbose = environment_params["verbose"]
-            if "plotTraining" in environment_params:
-                plotTraining = environment_params["plotTraining"]
-            if "rendering" in environment_params:
-                rendering = environment_params["rendering"]
-            if "showPerformance" in environment_params:
-                showPerformance = environment_params["showPerformance"]
-            if "saveStrategy" in environment_params:
-                saveStrategy = environment_params["saveStrategy"]
-            if "context" in environment_params:
-                context = environment_params["context"]
         # 1. INITIALIZATION PHASE
 
         # Retrieve the trading strategy information
-        if(strategyName in strategies):
-            strategy = strategies[strategyName]
-            trainingParameters = [bounds, step]
+        if(strategyName in self.strategies):
+            strategy = self.strategies[strategyName]
+            trainingParameters = [self.bounds, self.step]
             ai = False
-        elif(strategyName in strategiesAI):
-            strategy = strategiesAI[strategyName]
-            trainingParameters = [numberOfEpisodes]
+        elif(strategyName in self.strategiesAI):
+            strategy = self.strategiesAI[strategyName]
+            trainingParameters = [self.numberOfEpisodes]
             ai = True
         # Error message if the strategy specified is not valid or not supported
         else:
             print("The strategy specified is not valid, only the following strategies are supported:")
-            for strategy in strategies:
+            for strategy in self.strategies:
                 print("".join(['- ', strategy]))
-            for strategy in strategiesAI:
+            for strategy in self.strategiesAI:
                 print("".join(['- ', strategy]))
             raise SystemError("Please check the trading strategy specified.")
 
         # Retrieve the trading stock information
-        if(stockName in fictives):
-            stock = fictives[stockName]
-        elif(stockName in indices):
-            stock = indices[stockName]
-        elif(stockName in companies):
-            stock = companies[stockName]    
+        if(stockName in self.fictives):
+            stock = self.fictives[stockName]
+        elif(stockName in self.indices):
+            stock = self.indices[stockName]
+        elif(stockName in self.companies):
+            stock = self.companies[stockName]
         # Error message if the stock specified is not valid or not supported
         else:
             print("The stock specified is not valid, only the following stocks are supported:")
-            for stock in fictives:
+            for stock in self.fictives:
                 print("".join(['- ', stock]))
-            for stock in indices:
+            for stock in self.indices:
                 print("".join(['- ', stock]))
-            for stock in companies:
+            for stock in self.companies:
                 print("".join(['- ', stock]))
             raise SystemError("Please check the stock specified.")
 
@@ -444,45 +315,48 @@ class TradingSimulator:
         # 2. TRAINING PHASE
 
         # Initialize the trading environment associated with the training phase
-        trainingEnv = TradingEnv(stock, startingDate, splitingDate, money, context,stateLength, transactionCosts)
+
+        trainingEnv = TradingEnv(stock, self.startingDate, self.splittingDate, self.money,self.context, self.stateLength, self.transactionCosts)
+
 
         # Instanciate the strategy classes
         if ai: #TDQN
             strategyModule = importlib.import_module(str(strategy))
             className = getattr(strategyModule, strategy)
-            if run_config:
-                tradingStrategy = className(observationSpace, actionSpace, run_config["model"])
-            else:
-                tradingStrategy = className(observationSpace, actionSpace)
+            tradingStrategy = className(self.observationSpace, self.actionSpace, self.run_config)
         else:
             strategyModule = importlib.import_module('classicalStrategy')
             className = getattr(strategyModule, strategy)
             tradingStrategy = className()
 
         # Training of the trading strategy
-        trainingEnv = tradingStrategy.training(trainingEnv, context,trainingParameters=trainingParameters,
-                                               verbose=verbose, rendering=rendering,
-                                               plotTraining=plotTraining, showPerformance=showPerformance)
+
+        trainingEnv = tradingStrategy.training(trainingEnv, self.context,trainingParameters=trainingParameters,
+                                               verbose=self.verbose, rendering=self.rendering,
+                                               plotTraining=self.plotTraining, showPerformance=self.showPerformance)
 
         
         # 3. TESTING PHASE
 
         # Initialize the trading environment associated with the testing phase
-        testingEnv = TradingEnv(stock, splitingDate, endingDate, money, context,stateLength, transactionCosts)
+
+        testingEnv = TradingEnv(stock, self.splittingDate, self.endingDate, self.money, self.context,self.stateLength, self.transactionCosts)
 
         # Testing of the trading strategy
-        testingEnv = tradingStrategy.testing(trainingEnv, testingEnv, rendering=rendering, showPerformance=showPerformance)
+        testingEnv = tradingStrategy.testing(trainingEnv, testingEnv, rendering=self.rendering, showPerformance=self.showPerformance)
             
         # Show the entire unified rendering of the training and testing phases
-        if rendering:
+        if self.rendering:
             self.plotEntireTrading(trainingEnv, testingEnv)
 
 
         # 4. TERMINATION PHASE
 
         # If required, save the trading strategy with Pickle
-        if(saveStrategy):
-            fileName = "".join(["Strategies/", strategy, "_", stock, "_", startingDate, "_", splitingDate])
+        if(self.saveStrategy):
+            if not os.path.exists('Strategies/'):
+                os.makedirs('Strategies/')
+            fileName = "".join(["Strategies/", strategy, "_", stock, "_", self.startingDate, "_", self.splittingDate])
             if ai:
                 tradingStrategy.saveModel(fileName)
             else:
@@ -493,11 +367,7 @@ class TradingSimulator:
         return tradingStrategy, trainingEnv, testingEnv
 
     
-    def simulateExistingStrategy(self, strategyName, stockName,
-                                 startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
-                                 observationSpace=observationSpace, actionSpace=actionSpace, 
-                                 money=money, stateLength=stateLength, transactionCosts=transactionCosts,
-                                 rendering=True, showPerformance=True):
+    def simulateExistingStrategy(self, strategyName, stockName):
         """
         GOAL: Simulate an already existing trading strategy on a certain
               stock of the testbench, the strategy being loaded from the
@@ -506,6 +376,7 @@ class TradingSimulator:
         
         INPUTS: - strategyName: Name of the trading strategy.
                 - stockName: Name of the stock (in the testbench).
+        Other inputs specified by configuration:
                 - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
                 - splitingDate: Spliting date between the training dataset
@@ -528,36 +399,36 @@ class TradingSimulator:
         # 1. INITIALIZATION PHASE
 
         # Retrieve the trading strategy information
-        if(strategyName in strategies):
-            strategy = strategies[strategyName]
+        if(strategyName in self.strategies):
+            strategy = self.strategies[strategyName]
             ai = False
-        elif(strategyName in strategiesAI):
-            strategy = strategiesAI[strategyName]
+        elif(strategyName in self.strategiesAI):
+            strategy = self.strategiesAI[strategyName]
             ai = True
         # Error message if the strategy specified is not valid or not supported
         else:
             print("The strategy specified is not valid, only the following strategies are supported:")
-            for strategy in strategies:
+            for strategy in self.strategies:
                 print("".join(['- ', strategy]))
-            for strategy in strategiesAI:
+            for strategy in self.strategiesAI:
                 print("".join(['- ', strategy]))
             raise SystemError("Please check the trading strategy specified.")
 
         # Retrieve the trading stock information
-        if(stockName in fictives):
-            stock = fictives[stockName]
-        elif(stockName in indices):
-            stock = indices[stockName]
-        elif(stockName in companies):
-            stock = companies[stockName]    
+        if(stockName in self.fictives):
+            stock = self.fictives[stockName]
+        elif(stockName in self.indices):
+            stock = self.indices[stockName]
+        elif(stockName in self.companies):
+            stock = self.companies[stockName]
         # Error message if the stock specified is not valid or not supported
         else:
             print("The stock specified is not valid, only the following stocks are supported:")
-            for stock in fictives:
+            for stock in self.fictives:
                 print("".join(['- ', stock]))
-            for stock in indices:
+            for stock in self.indices:
                 print("".join(['- ', stock]))
-            for stock in companies:
+            for stock in self.companies:
                 print("".join(['- ', stock]))
             raise SystemError("Please check the stock specified.")
         
@@ -565,14 +436,14 @@ class TradingSimulator:
         # 2. LOADING PHASE    
 
         # Check that the strategy to load exists in the strategy dataset
-        fileName = "".join(["Strategies/", strategy, "_", stock, "_", startingDate, "_", splitingDate])
+        fileName = "".join(["Strategies/", strategy, "_", stock, "_", self.startingDate, "_", self.splittingDate])
         exists = os.path.isfile(fileName)
         # If affirmative, load the trading strategy
         if exists:
             if ai:
                 strategyModule = importlib.import_module(strategy)
                 className = getattr(strategyModule, strategy)
-                tradingStrategy = className(observationSpace, actionSpace)
+                tradingStrategy = className(self.observationSpace, self.actionSpace, self.run_config)
                 tradingStrategy.loadModel(fileName)
             else:
                 fileHandler = open(fileName, 'rb') 
@@ -584,32 +455,27 @@ class TradingSimulator:
         # 3. TESTING PHASE
 
         # Initialize the trading environments associated with the testing phase
-        trainingEnv = TradingEnv(stock, startingDate, splitingDate, money, stateLength, transactionCosts)
-        testingEnv = TradingEnv(stock, splitingDate, endingDate, money, stateLength, transactionCosts)
+        trainingEnv = TradingEnv(stock, self.startingDate, self.splittingDate, self.money, self.stateLength, self.transactionCosts)
+        testingEnv = TradingEnv(stock, self.splittingDate, self.endingDate, self.money, self.stateLength, self.transactionCosts)
 
         # Testing of the trading strategy
-        trainingEnv = tradingStrategy.testing(trainingEnv, trainingEnv, rendering=rendering, showPerformance=showPerformance)
-        testingEnv = tradingStrategy.testing(trainingEnv, testingEnv, rendering=rendering, showPerformance=showPerformance)
+        trainingEnv = tradingStrategy.testing(trainingEnv, trainingEnv, rendering=self.rendering, showPerformance=self.showPerformance)
+        testingEnv = tradingStrategy.testing(trainingEnv, testingEnv, rendering=self.rendering, showPerformance=self.showPerformance)
 
         # Show the entire unified rendering of the training and testing phases
-        if rendering:
+        if self.rendering:
             self.plotEntireTrading(trainingEnv, testingEnv)
 
         return tradingStrategy, trainingEnv, testingEnv
 
 
-    def evaluateStrategy(self, strategyName,
-                         startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
-                         observationSpace=observationSpace, actionSpace=actionSpace, 
-                         money=money, stateLength=stateLength, transactionCosts=transactionCosts,
-                         bounds=bounds, step=step, numberOfEpisodes=numberOfEpisodes,
-                         verbose=False, plotTraining=False, rendering=False, showPerformance=False,
-                         saveStrategy=False):
+    def evaluateStrategy(self, strategyName):
         """
         GOAL: Evaluate the performance of a trading strategy on the entire
               testbench of stocks designed.
         
         INPUTS: - strategyName: Name of the trading strategy.
+        Other inputs specified by configuration:
                 - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
                 - splitingDate: Spliting date between the training dataset
@@ -633,28 +499,65 @@ class TradingSimulator:
         OUTPUTS: - performanceTable: Table summarizing the performance of
                                      a trading strategy.
         """
+        return self.evaluateStrategyOnStocks(strategyName, self.stocks.keys())
+
+
+
+    def evaluateStrategyOnStocks(self, strategyName, stockNames: []):
+        """
+        GOAL: Evaluate the performance of a trading strategy on the specified stocks.
+
+        INPUTS: - strategyName: Name of the trading strategy.
+                - stockNames: List of stock names to test the strategy on
+        Other inputs specified by configuration:
+                - startingDate: Beginning of the trading horizon.
+                - endingDate: Ending of the trading horizon.
+                - splitingDate: Spliting date between the training dataset
+                                and the testing dataset.
+                - observationSpace: Size of the RL observation space.
+                - actionSpace: Size of the RL action space.
+                - money: Initial capital at the disposal of the agent.
+                - stateLength: Length of the trading agent state.
+                - transactionCosts: Additional costs incurred while trading
+                                    (e.g. 0.01 <=> 1% of transaction costs).
+                - bounds: Bounds of the parameter search space (training).
+                - step: Step of the parameter search space (training).
+                - numberOfEpisodes: Number of epsiodes of the RL training phase.
+                - verbose: Enable the printing of simulation feedbacks.
+                - plotTraining: Enable the plotting of the training results.
+                - rendering: Enable the rendering of the trading environment.
+                - showPerformance: Enable the printing of a table summarizing
+                                   the trading strategy performance.
+                - saveStrategy: Enable the saving of the trading strategy.
+
+        OUTPUTS: - performanceTable: Table summarizing the performance of
+                                     a trading strategy.
+        """
 
         # Initialization of some variables
-        performanceTable = [["Profit & Loss (P&L)"], ["Annualized Return"], ["Annualized Volatility"], ["Sharpe Ratio"], ["Sortino Ratio"], ["Maximum DrawDown"], ["Maximum DrawDown Duration"], ["Profitability"], ["Ratio Average Profit/Loss"], ["Skewness"]]
+        performanceTable = [["Profit & Loss (P&L)"], ["Annualized Return"], ["Annualized Volatility"], ["Sharpe Ratio"],
+                            ["Sortino Ratio"], ["Maximum DrawDown"], ["Maximum DrawDown Duration"], ["Profitability"],
+                            ["Ratio Average Profit/Loss"], ["Skewness"]]
         headers = ["Performance Indicator"]
 
+        selected_stocks = {stockName: self.stocks[stockName] for stockName in stockNames}
         # Loop through each stock included in the testbench (progress bar)
         print("Trading strategy evaluation progression:")
-        #for stock in tqdm(itertools.chain(indices, companies)):
-        for stock in tqdm(stocks):
+        # for stock in tqdm(itertools.chain(indices, companies)):
+        for stock in tqdm(selected_stocks):
 
             # Simulation of the trading strategy on the current stock
             try:
                 # Simulate an already existing trading strategy on the current stock
-                _, _, testingEnv = self.simulateExistingStrategy(strategyName, stock, startingDate, endingDate, splitingDate, observationSpace, actionSpace, money, stateLength, transactionCosts, rendering, showPerformance)
+                _, _, testingEnv = self.simulateExistingStrategy(strategyName, stock)
             except SystemError:
                 # Simulate a new trading strategy on the current stock
-                _, _, testingEnv = self.simulateNewStrategy(strategyName, stock, startingDate, endingDate, splitingDate, observationSpace, actionSpace, money, stateLength, transactionCosts, bounds, step, numberOfEpisodes, verbose, plotTraining, rendering, showPerformance, saveStrategy)
+                _, _, testingEnv = self.simulateNewStrategy(strategyName, stock)
 
             # Retrieve the trading performance associated with the trading strategy
             analyser = PerformanceEstimator(testingEnv.data)
             performance = analyser.computePerformance()
-            
+
             # Get the required format for the display of the performance table
             headers.append(stock)
             for i in range(len(performanceTable)):
@@ -670,20 +573,14 @@ class TradingSimulator:
 
         return performanceTable
 
-
-    def evaluateStock(self, stockName,
-                      startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
-                      observationSpace=observationSpace, actionSpace=actionSpace,  
-                      money=money, stateLength=stateLength, transactionCosts=transactionCosts,
-                      bounds=bounds, step=step, numberOfEpisodes=numberOfEpisodes,
-                      verbose=False, plotTraining=False, rendering=False, showPerformance=False,
-                      saveStrategy=False):
+    def evaluateStock(self, stockName):
 
         """
         GOAL: Simulate and compare the performance achieved by all the supported
               trading strategies on a certain stock of the testbench.
         
         INPUTS: - stockName: Name of the stock (in the testbench).
+        Other inputs specified by configuration:
                 - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
                 - splitingDate: Spliting date between the training dataset
@@ -712,15 +609,15 @@ class TradingSimulator:
 
         # Loop through all the trading strategies supported (progress bar)
         print("Trading strategies evaluation progression:")
-        for strategy in tqdm(itertools.chain(strategies, strategiesAI)):
+        for strategy in tqdm(itertools.chain(self.strategies, self.strategiesAI)):
 
             # Simulation of the current trading strategy on the stock
             try:
                 # Simulate an already existing trading strategy on the stock
-                _, _, testingEnv = self.simulateExistingStrategy(strategy, stockName, startingDate, endingDate, splitingDate, observationSpace, actionSpace, money, stateLength, transactionCosts, rendering, showPerformance)
+                _, _, testingEnv = self.simulateExistingStrategy(strategy, stockName)
             except SystemError:
                 # Simulate a new trading strategy on the stock
-                _, _, testingEnv = self.simulateNewStrategy(strategy, stockName, startingDate, endingDate, splitingDate, observationSpace, actionSpace, money, stateLength, transactionCosts, bounds, step, numberOfEpisodes, verbose, plotTraining, rendering, showPerformance, saveStrategy)
+                _, _, testingEnv = self.simulateNewStrategy(strategy, stockName)
 
             # Retrieve the trading performance associated with the trading strategy
             analyser = PerformanceEstimator(testingEnv.data)

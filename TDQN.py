@@ -19,9 +19,10 @@ import datetime
 import numpy as np
 
 from collections import deque
+
+import yaml
 from tqdm import tqdm
 from matplotlib import pyplot as plt
-import yaml
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -35,49 +36,45 @@ from tradingEnv import TradingEnv
 
 
 
-###############################################################################
-################################ Global variables #############################
-###############################################################################
-
-# Default parameters related to the DQN algorithm
-gamma = 0.4
-learningRate = 0.0001
-targetNetworkUpdate = 1000
-learningUpdatePeriod = 1
-
-# Default parameters related to the Experience Replay mechanism
-capacity = 100000
-batchSize = 32
-experiencesRequired = 1000
-
-# Default parameters related to the Deep Neural Network
-numberOfNeurons = 512
-dropout = 0.2
-
-# Default parameters related to the Epsilon-Greedy exploration technique
-epsilonStart = 1.0
-epsilonEnd = 0.01
-epsilonDecay = 10000
-
-# Default parameters regarding the sticky actions RL generalization technique
-alpha = 0.1
-
-# Default parameters related to preprocessing
-filterOrder = 5
-
-# Default paramters related to the clipping of both the gradient and the RL rewards
-gradientClipping = 1
-rewardClipping = 1
-
-# Default parameter related to the L2 Regularization 
-L2Factor = 0.000001
+# ###############################################################################
+# ################################ Global variables #############################
+# ###############################################################################
+#
+# # Default parameters related to the DQN algorithm
+# gamma = 0.4
+# learningRate = 0.0001
+# targetNetworkUpdate = 1000
+# learningUpdatePeriod = 1
+#
+# # Default parameters related to the Experience Replay mechanism
+# capacity = 100000
+# batchSize = 32
+# experiencesRequired = 1000
+#
+# # Default parameters related to the Deep Neural Network
+# numberOfNeurons = 512
+# dropout = 0.2
+#
+# # Default parameters related to the Epsilon-Greedy exploration technique
+# epsilonStart = 1.0
+# epsilonEnd = 0.01
+# epsilonDecay = 10000
+#
+# # Default parameters regarding the sticky actions RL generalization technique
+# alpha = 0.1
+#
+# # Default parameters related to preprocessing
+# filterOrder = 5
+#
+# # Default paramters related to the clipping of both the gradient and the RL rewards
+# gradientClipping = 1
+# rewardClipping = 1
+#
+# # Default parameter related to the L2 Regularization
+# L2Factor = 0.000001
 
 # Default paramter related to the hardware acceleration (CUDA)
-GPUNumber = 0
-run_config_path = "./configurations/hyperparameters-default.yml"
-with open(run_config_path, 'r') as yamlfile:
-                run_config = yaml.safe_load(yamlfile)
-ending_date = run_config['environment']['endingDate']
+# GPUNumber = 0
 
 
 ###############################################################################
@@ -98,7 +95,7 @@ class ReplayMemory:
                 - reset: Reset the replay memory.
     """
 
-    def __init__(self, capacity=capacity):
+    def __init__(self, capacity):
         """
         GOAL: Initializating the replay memory data structure.
         
@@ -109,8 +106,9 @@ class ReplayMemory:
         OUTPUTS: /
         """
 
+        self.capacity = capacity
         self.memory = deque(maxlen=capacity)
-    
+
 
     def push(self, state, action, reward, nextState, done):
         """
@@ -169,7 +167,7 @@ class ReplayMemory:
         OUTPUTS: /
         """
 
-        self.memory = deque(maxlen=capacity)
+        self.memory = deque(maxlen=self.capacity)
 
 
 
@@ -201,7 +199,7 @@ class DQN(nn.Module):
                 - forward: Forward pass of the Deep Neural Network.
     """
 
-    def __init__(self, numberOfInputs, numberOfOutputs, numberOfNeurons=numberOfNeurons, dropout=dropout):
+    def __init__(self, numberOfInputs, numberOfOutputs, numberOfNeurons, dropout):
         """
         GOAL: Defining and initializing the Deep Neural Network of the
               DQN Reinforcement Learning algorithm.
@@ -270,7 +268,8 @@ class TDQN:
     GOAL: Implementing an intelligent trading agent based on the DQN
           Reinforcement Learning algorithm.
     
-    VARIABLES:  - device: Hardware specification (CPU or GPU).
+    VARIABLES:  - model_params: Path to configuration file containing all env and model params
+                - device: Hardware specification (CPU or GPU).
                 - gamma: Discount factor of the DQN algorithm.
                 - learningRate: Learning rate of the ADAM optimizer.
                 - capacity: Capacity of the experience replay memory.
@@ -315,10 +314,7 @@ class TDQN:
                                      (Epsilon-Greedy exploration technique).        
     """
 
-    def __init__(self, observationSpace, actionSpace, model_params=None, numberOfNeurons=numberOfNeurons, dropout=dropout,
-                 gamma=gamma, learningRate=learningRate, targetNetworkUpdate=targetNetworkUpdate,
-                 epsilonStart=epsilonStart, epsilonEnd=epsilonEnd, epsilonDecay=epsilonDecay,
-                 capacity=capacity, batchSize=batchSize):
+    def __init__(self, observationSpace, actionSpace, run_config):
         """
         GOAL: Initializing the RL agent based on the DQN Reinforcement Learning
               algorithm, by setting up the DQN algorithm parameters as well as 
@@ -326,6 +322,8 @@ class TDQN:
         
         INPUTS: - observationSpace: Size of the RL observation space.
                 - actionSpace: Size of the RL action space.
+                - run_config: Path to configuration file containing all env and model params
+                - Other inputs specified by configuration file:
                 - numberOfNeurons: Number of neurons per layer in the Deep Neural Network.
                 - dropout: Droupout probability value (handling of overfitting).
                 - gamma: Discount factor of the DQN algorithm.
@@ -343,66 +341,65 @@ class TDQN:
         OUTPUTS: /
         """
         # Set variables from config file
-        if model_params:
-            if "numberOfNeurons" in model_params:
-                numberOfNeurons = model_params["numberOfNeurons"]
-            if "dropout" in model_params:
-                dropout = model_params["dropout"]
-            if "gamma" in model_params:
-                gamma = model_params["gamma"]
-            if "learningRate" in model_params:
-                learningRate = model_params["learningRate"]
-            if "targetNetworkUpdate" in model_params:
-                targetNetworkUpdate = model_params["targetNetworkUpdate"]
-            if "epsilonStart" in model_params:
-                epsilonStart = model_params["epsilonStart"]
-            if "epsilonEnd" in model_params:
-                epsilonEnd = model_params["epsilonEnd"]
-            if "epsilonDecay" in model_params:
-                epsilonDecay = model_params["epsilonDecay"]
-            if "capacity" in model_params:
-                capacity = model_params["capacity"]
-            if "batchSize" in model_params:
-                batchSize = model_params["batchSize"]
+        model_params = run_config["model"]
+
+        self.numberOfNeurons = model_params["numberOfNeurons"]
+        self.dropout = model_params["dropout"]
+        self.gamma = model_params["gamma"]
+        self.learningRate = model_params["learningRate"]
+        self.targetNetworkUpdate = model_params["targetNetworkUpdate"]
+        self.learningUpdatePeriod = model_params["learningUpdatePeriod"]
+        self.experiencesRequired = model_params["experiencesRequired"]
+        self.epsilonStart = model_params["epsilonStart"]
+        self.epsilonEnd = model_params["epsilonEnd"]
+        self.epsilonDecay = model_params["epsilonDecay"]
+        self.capacity = model_params["capacity"]
+        self.batchSize = model_params["batchSize"]
+        self.L2Factor = model_params["L2Factor"]
+        self.alpha = model_params["alpha"]
+        self.filterOrder = model_params["filterOrder"]
+        self.gradientClipping = model_params["gradientClipping"]
+        self.rewardClipping = model_params["rewardClipping"]
+        self.GPUNumber = model_params["GPUNumber"]
+
+        self.ending_date = run_config['environment']['endingDate']
 
         # Initialise the random function with a new random seed
         random.seed(0)
 
         # Check availability of CUDA for the hardware (CPU or GPU)
-        self.device = torch.device('cuda:'+str(GPUNumber) if torch.cuda.is_available() else 'cpu')
-
-        # Set the general parameters of the DQN algorithm
-        self.gamma = gamma
-        self.learningRate = learningRate
-        self.targetNetworkUpdate = targetNetworkUpdate
+        self.device = torch.device('cuda:'+str(self.GPUNumber) if torch.cuda.is_available() else 'cpu')
 
         # Set the Experience Replay mechnism
-        self.capacity = capacity
-        self.batchSize = batchSize
-        self.replayMemory = ReplayMemory(capacity)
+        self.replayMemory = ReplayMemory(self.capacity)
 
         # Set both the observation and action spaces
         self.observationSpace = observationSpace
         self.actionSpace = actionSpace
 
         # Set the two Deep Neural Networks of the DQN algorithm (policy and target)
-        self.policyNetwork = DQN(observationSpace, actionSpace, numberOfNeurons, dropout).to(self.device)
-        self.targetNetwork = DQN(observationSpace, actionSpace, numberOfNeurons, dropout).to(self.device)
+        self.policyNetwork = DQN(observationSpace, actionSpace, self.numberOfNeurons, self.dropout).to(self.device)
+        self.targetNetwork = DQN(observationSpace, actionSpace, self.numberOfNeurons, self.dropout).to(self.device)
         self.targetNetwork.load_state_dict(self.policyNetwork.state_dict())
         self.policyNetwork.eval()
         self.targetNetwork.eval()
 
         # Set the Deep Learning optimizer
-        self.optimizer = optim.Adam(self.policyNetwork.parameters(), lr=learningRate, weight_decay=L2Factor)
+        self.optimizer = optim.Adam(self.policyNetwork.parameters(), lr=self.learningRate, weight_decay=self.L2Factor)
 
         # Set the Epsilon-Greedy exploration technique
-        self.epsilonValue = lambda iteration: epsilonEnd + (epsilonStart - epsilonEnd) * math.exp(-1 * iteration / epsilonDecay)
+        self.epsilonValue = lambda iteration: self.epsilonEnd + (self.epsilonStart - self.epsilonEnd) * math.exp(-1 * iteration / self.epsilonDecay)
         
         # Initialization of the iterations counter
         self.iterations = 0
 
         # Initialization of the tensorboard writer
-        self.writer = SummaryWriter('runs/' + datetime.datetime.now().strftime("%d/%m/%Y-%H:%M:%S"))
+        run_time = datetime.datetime.now().strftime("%d.%m.%Y_%H-%M-%S")
+        self.writer = SummaryWriter('runs/' + run_time,
+                                    comment='strategy: TDQN')
+        self.writer.add_text("TDQN" + run_time, "Model-parameters: \n" + str(model_params) + "\n \n"
+                              "Environment-parameters: " + str(run_config["environment"]))
+        # using add_hparams for logging hyperparameters somehow does not seem to work
 
     
     def getNormalizationCoefficients(self, tradingEnv):
@@ -513,7 +510,7 @@ class TDQN:
         OUTPUTS: - reward: Process RL reward.
         """
 
-        return np.clip(reward, -rewardClipping, rewardClipping)
+        return np.clip(reward, -self.rewardClipping, self.rewardClipping)
  
 
     def updateTargetNetwork(self):
@@ -528,7 +525,7 @@ class TDQN:
         """
 
         # Check if an update is required (update frequency)
-        if(self.iterations % targetNetworkUpdate == 0):
+        if(self.iterations % self.targetNetworkUpdate == 0):
             # Transfer the DNN parameters (policy network -> target network)
             self.targetNetwork.load_state_dict(self.policyNetwork.state_dict())
 
@@ -575,7 +572,7 @@ class TDQN:
         # EXPLOITATION -> RL policy
         if(random.random() > self.epsilonValue(self.iterations)):
             # Sticky action (RL generalization mechanism)
-            if(random.random() > alpha):
+            if(random.random() > self.alpha):
                 action, Q, QValues = self.chooseAction(state)
             else:
                 action = previousAction
@@ -594,7 +591,7 @@ class TDQN:
         return action, Q, QValues
     
 
-    def learning(self, batchSize=batchSize):
+    def learning(self, batchSize):
         """
         GOAL: Sample a batch of past experiences and learn from it
               by updating the Reinforcement Learning policy.
@@ -627,7 +624,7 @@ class TDQN:
             with torch.no_grad():
                 nextActions = torch.max(self.policyNetwork(nextState), 1)[1]
                 nextQValues = self.targetNetwork(nextState).gather(1, nextActions.unsqueeze(1)).squeeze(1)
-                expectedQValues = reward + gamma * nextQValues * (1 - done)
+                expectedQValues = reward + self.gamma * nextQValues * (1 - done)
 
             # Compute the Huber loss
             loss = F.smooth_l1_loss(currentQValues, expectedQValues)
@@ -637,7 +634,7 @@ class TDQN:
             loss.backward()
 
             # Gradient Clipping
-            torch.nn.utils.clip_grad_norm_(self.policyNetwork.parameters(), gradientClipping)
+            torch.nn.utils.clip_grad_norm_(self.policyNetwork.parameters(), self.gradientClipping)
 
             # Perform the Deep Neural Network optimization
             self.optimizer.step()
@@ -685,7 +682,7 @@ class TDQN:
             # Testing performance
             marketSymbol = trainingEnv.marketSymbol
             startingDate = trainingEnv.endingDate
-            endingDate = ending_date
+            endingDate = self.ending_date
             money = trainingEnv.data['Money'][0]
             stateLength = trainingEnv.stateLength
             transactionCosts = trainingEnv.transactionCosts
@@ -717,9 +714,10 @@ class TDQN:
                     if plotTraining:
                         totalReward = 0
 
+                    number_interactions = 0
                     # Interact with the training environment until termination
                     while done == 0:
-
+                        number_interactions += 1
                         # Choose an action according to the RL policy and the current RL state
                         action, _, _ = self.chooseActionEpsilonGreedy(state, previousAction)
                         
@@ -740,8 +738,8 @@ class TDQN:
 
                         # Execute the DQN learning procedure
                         stepsCounter += 1
-                        if stepsCounter == learningUpdatePeriod:
-                            self.learning()
+                        if stepsCounter == self.learningUpdatePeriod:
+                            self.learning(self.batchSize)
                             stepsCounter = 0
 
                         # Update the RL state
@@ -825,8 +823,8 @@ class TDQN:
 
         # Apply data augmentation techniques to process the testing set
         dataAugmentation = DataAugmentation()
-        testingEnvSmoothed = dataAugmentation.lowPassFilter(testingEnv, filterOrder)
-        trainingEnv = dataAugmentation.lowPassFilter(trainingEnv, filterOrder)
+        testingEnvSmoothed = dataAugmentation.lowPassFilter(testingEnv, self.filterOrder)
+        trainingEnv = dataAugmentation.lowPassFilter(trainingEnv, self.filterOrder)
 
         # Initialization of some RL variables
         coefficients = self.getNormalizationCoefficients(trainingEnv)
@@ -988,8 +986,8 @@ class TDQN:
 
                             # Execute the DQN learning procedure
                             stepsCounter += 1
-                            if stepsCounter == learningUpdatePeriod:
-                                self.learning()
+                            if stepsCounter == self.learningUpdatePeriod:
+                                self.learning(self.batchSize)
                                 stepsCounter = 0
 
                             # Update the RL state
@@ -1012,7 +1010,7 @@ class TDQN:
                     testingEnv.reset()
                     self.policyNetwork.load_state_dict(initialWeights)
                     self.targetNetwork.load_state_dict(initialWeights)
-                    self.optimizer = optim.Adam(self.policyNetwork.parameters(), lr=learningRate, weight_decay=L2Factor)
+                    self.optimizer = optim.Adam(self.policyNetwork.parameters(), lr=self.learningRate, weight_decay=self.L2Factor)
                     self.replayMemory.reset()
                     self.iterations = 0
                     stepsCounter = 0
@@ -1103,7 +1101,7 @@ class TDQN:
         """
 
         plt.figure()
-        plt.plot([self.epsilonValue(i) for i in range(10*epsilonDecay)])
+        plt.plot([self.epsilonValue(i) for i in range(10*self.epsilonDecay)])
         plt.xlabel("Iterations")
         plt.ylabel("Epsilon value")
         plt.savefig(''.join(['Figures/', 'EpsilonAnnealing', '.png']))
