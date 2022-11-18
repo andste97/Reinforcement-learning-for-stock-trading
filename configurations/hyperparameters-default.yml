@@ -37,9 +37,11 @@ model:
 
 environment:
   # Variables defining the default trading horizon
+
   startingDate: '2006-1-1'
-  endingDate: '2022-1-1'
+  endingDate: '2022-11-1'
   splittingDate: '2019-1-1'
+
   
   # Variables defining the default observation and state spaces
   stateLength: 30
@@ -56,7 +58,9 @@ environment:
   # Variables specifying the default general training parameters
   bounds: [1, 30]
   step: 1
+
   numberOfEpisodes: 50
+
   
   # Dictionary listing the fictive stocks supported
   fictives: {
@@ -134,10 +138,23 @@ environment:
       'Volkswagen' : 'VOW3.DE',
       'Toyota' : '7203.T',
       'Coca Cola' : 'KO',
-      'AB InBev' : 'BUD',
+
+      'AB InBev' : 'ABI.BR',
       'Kirin' : '2503.T',
       'Gamestop' : 'GME'
   }
+
+  context: {
+    'USD-EUR' : 'EUR=X',
+    'S&P 500' : '^GSPC', 
+    'VIX' : '^VIX',
+    'Oil' : 'CL=F',
+    'Gold' : 'GC=F',
+    'US Treasury 5 years yield' : '^FVX',
+    'US Treasury 10 years yield' : '^TNX',
+    'US Treasury 30 years yield' : '^TYX'
+    
+  # observationSpace: 349 # 1 + (stateLength-1)*(4 + len(context))
 
   # Dictionary listing the classical trading strategies supported
   strategies: {

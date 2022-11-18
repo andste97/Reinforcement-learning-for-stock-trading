@@ -90,8 +90,9 @@ class TradingSimulator:
         self.strategies = environment_params["strategies"]
         self.strategiesAI = environment_params["strategiesAI"]
         self.percentageCosts = environment_params["percentageCosts"]
+        self.context = environment_params["context"]
 
-        self.observationSpace = 1 + (self.stateLength - 1) * 4
+        self.observationSpace = 1 + (self.stateLength - 1) * (4+len(self.context))
         # Variables setting up the default transaction costs
         self.transactionCosts = self.percentageCosts[1] / 100
 
@@ -272,7 +273,6 @@ class TradingSimulator:
                  - testingEnv: Trading environment related to the testing phase.
         """
 
-
         # 1. INITIALIZATION PHASE
 
         # Retrieve the trading strategy information
@@ -315,10 +315,12 @@ class TradingSimulator:
         # 2. TRAINING PHASE
 
         # Initialize the trading environment associated with the training phase
-        trainingEnv = TradingEnv(stock, self.startingDate, self.splittingDate, self.money, self.stateLength, self.transactionCosts)
+
+        trainingEnv = TradingEnv(stock, self.startingDate, self.splittingDate, self.money,self.context, self.stateLength, self.transactionCosts)
+
 
         # Instanciate the strategy classes
-        if ai:
+        if ai: #TDQN
             strategyModule = importlib.import_module(str(strategy))
             className = getattr(strategyModule, strategy)
             tradingStrategy = className(self.observationSpace, self.actionSpace, self.run_config)
@@ -328,7 +330,8 @@ class TradingSimulator:
             tradingStrategy = className()
 
         # Training of the trading strategy
-        trainingEnv = tradingStrategy.training(trainingEnv, trainingParameters=trainingParameters,
+
+        trainingEnv = tradingStrategy.training(trainingEnv, self.context,trainingParameters=trainingParameters,
                                                verbose=self.verbose, rendering=self.rendering,
                                                plotTraining=self.plotTraining, showPerformance=self.showPerformance)
 
@@ -336,7 +339,8 @@ class TradingSimulator:
         # 3. TESTING PHASE
 
         # Initialize the trading environment associated with the testing phase
-        testingEnv = TradingEnv(stock, self.splittingDate, self.endingDate, self.money, self.stateLength, self.transactionCosts)
+
+        testingEnv = TradingEnv(stock, self.splittingDate, self.endingDate, self.money, self.context,self.stateLength, self.transactionCosts)
 
         # Testing of the trading strategy
         testingEnv = tradingStrategy.testing(trainingEnv, testingEnv, rendering=self.rendering, showPerformance=self.showPerformance)
