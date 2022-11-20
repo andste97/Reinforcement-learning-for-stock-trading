@@ -29,7 +29,7 @@ if(__name__ == '__main__'):
     args = parser.parse_args()
     
     # Initialization of the required variables
-    run_config_path = "./configurations/hyperparameters-default.yml"
+    run_config_path = "./configurations/hyperparameters_TCNNDQN-default.yml"
     simulator = TradingSimulator(run_config_path)
     strategy = args.strategy
     stock = args.stock
@@ -37,7 +37,7 @@ if(__name__ == '__main__'):
 
 
     # Training and testing of the trading strategy specified for the stock (market) specified, using config from configuration file
-    simulator.simulateNewStrategy("TDQN", stock)
+    simulator.simulateNewStrategy("TCNNDQN", stock)
 
     # simulator.displayTestbench()
     # simulator.analyseTimeSeries(stock)

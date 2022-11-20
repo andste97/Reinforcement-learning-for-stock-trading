@@ -15,20 +15,6 @@ import numpy as np
 
 from tradingEnv import TradingEnv
 
-
-
-###############################################################################
-################################ Global variables #############################
-###############################################################################
-
-# Default ranges for the parameters of the data augmentation techniques 
-shiftRange = [0]
-stretchRange = [1]
-filterRange = [5]
-noiseRange = [0]
-
-
-
 ###############################################################################
 ############################# Class DataAugmentation ##########################
 ###############################################################################
@@ -51,7 +37,22 @@ class DataAugmentation:
                 - generate: Generate a set of new trading environments based on the
                             data augmentation techniques implemented.       
     """
-    
+
+
+    def __init__(self, shiftRange = [0], stretchRange = [1],
+                 filterRange = [5], noiseRange = [0]):
+        """
+            Input:
+                - shiftRange: range by which sequences should be shifted higher or lower
+                - stretchRange: range by which sequences should be stretched in the y-axis
+                - filter range: range in days of the rolling average window
+                - noseRange: amplitude of generated noise
+        """
+        self.shiftRange = shiftRange
+        self.stretchRange = stretchRange
+        self.filterRange = filterRange
+        self.noiseRange = noiseRange
+
     def shiftTimeSeries(self, tradingEnv, shiftMagnitude=0):
         """
         GOAL: Generate a new trading environment by simply shifting up or down
@@ -182,13 +183,13 @@ class DataAugmentation:
 
         # Application of the data augmentation techniques to generate the new trading environments
         tradingEnvList = []
-        for shift in shiftRange:
+        for shift in self.shiftRange:
             tradingEnvShifted = self.shiftTimeSeries(tradingEnv, shift)
-            for stretch in stretchRange:
+            for stretch in self.stretchRange:
                 tradingEnvStretched = self.streching(tradingEnvShifted, stretch)
-                for order in filterRange:
+                for order in self.filterRange:
                     tradingEnvFiltered = self.lowPassFilter(tradingEnvStretched, order)
-                    for noise in noiseRange:
+                    for noise in self.noiseRange:
                         tradingEnvList.append(self.noiseAddition(tradingEnvFiltered, noise))
         return tradingEnvList
     
