@@ -25,7 +25,7 @@ if(__name__ == '__main__'):
     # Retrieve the paramaters sent by the user
     parser = argparse.ArgumentParser(description='')
     parser.add_argument("-strategy", default='TDQN', type=str, help="Name of the trading strategy")
-    parser.add_argument("-stock", default='ExxonMobil', type=str, help="Name of the stock (market)")
+    parser.add_argument("-stock", default='IBM', type=str, help="Name of the stock (market)")
     args = parser.parse_args()
     
     # Initialization of the required variables
@@ -37,13 +37,13 @@ if(__name__ == '__main__'):
 
 
     # Training and testing of the trading strategy specified for the stock (market) specified, using config from configuration file
-    simulator.simulateNewStrategy("TDQN", stock)
+    # simulator.simulateNewStrategy("TDQN", stock)
 
     # simulator.displayTestbench()
     # simulator.analyseTimeSeries(stock)
     # simulator.simulateNewStrategy(strategy, stock)
     # simulator.simulateExistingStrategy(strategy, stock)
-    # simulator.evaluateStrategy("TDRQN")
+    performanceTable = simulator.evaluateStrategy("TDQN")
     # simulator.evaluateStrategyOnStocks("TDRQN", ["Apple", "Google", "Volkswagen"])
     # simulator.evaluateStock(stock)
 

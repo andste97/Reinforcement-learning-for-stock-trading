@@ -566,12 +566,26 @@ class TradingSimulator:
         # Display the performance table computed
         tabulation = tabulate(performanceTable, headers, tablefmt="fancy_grid", stralign="center")
         print(tabulation)
+        output_df = pd.DataFrame(performanceTable,columns = headers)
+        if not os.path.exists('Evaluation/'):
+            os.makedirs('Evaluation/')
+
+        base_name = f"Evaluation/{strategyName}"
+        n=0
+        name = base_name+'_'+str(n)
+        isFile = os.path.isfile(name+".csv")
+        while isFile:
+            n+=1
+            name = base_name+'_'+str(n)
+            isFile = os.path.isfile(name+".csv")
+        output_df.to_csv(name+".csv")
+
 
         # Computation of the average Sharpe Ratio (default performance indicator)
         sharpeRatio = np.mean([float(item) for item in performanceTable[3][1:]])
         print("Average Sharpe Ratio: " + "{0:.3f}".format(sharpeRatio))
 
-        return performanceTable
+        return output_df
 
     def evaluateStock(self, stockName):
 
