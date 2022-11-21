@@ -1,0 +1,179 @@
+model:
+  # Default parameters related to the DQN algorithm
+  gamma: 0.4
+  learningRate: 0.0001
+  targetNetworkUpdate: 1000
+  learningUpdatePeriod: 1
+  
+  # Default parameters related to the Experience Replay mechanism
+  capacity: 100000
+  batchSize: 32
+  experiencesRequired: 1000
+
+  # Default parameters related to the Deep Neural Network
+  numberOfNeurons: 512
+  dropout: 0.2
+
+  # Default parameters related to the Epsilon-Greedy exploration technique
+  epsilonStart: 1.0
+  epsilonEnd: 0.01
+  epsilonDecay: 10000
+
+  # Default parameters regarding the sticky actions RL generalization technique
+  alpha: 0.1
+
+  # Default parameters related to preprocessing
+  filterOrder: 5
+
+  # Default paramters related to the clipping of both the gradient and the RL rewards
+  gradientClipping: 1
+  rewardClipping: 1
+
+  # Default parameter related to the L2 Regularization 
+  L2Factor: 0.000001
+
+  # Default paramter related to the hardware acceleration (CUDA)
+  GPUNumber: 0
+
+environment:
+  # Variables defining the default trading horizon
+
+  startingDate: '2006-1-1'
+  endingDate: '2022-11-1'
+  splittingDate: '2019-1-1'
+
+  
+  # Variables defining the default observation and state spaces
+  stateLength: 30
+  #observationSpace: 1 + (stateLength-1)*4 - cannot be used because it is defines code expression
+  actionSpace: 2
+  
+  # Variables setting up the default transaction costs
+  percentageCosts: [0, 0.1, 0.2]
+  #transactionCosts: percentageCosts[1]/100 - cannot be used because it is defines code expression
+  
+  # Variables specifying the default capital at the disposal of the trader
+  money: 100000
+  
+  # Variables specifying the default general training parameters
+  bounds: [1, 30]
+  step: 1
+
+  numberOfEpisodes: 50
+
+  
+  # Dictionary listing the fictive stocks supported
+  fictives: {
+      'Linear Upward' : 'LINEARUP',
+      'Linear Downward' : 'LINEARDOWN',
+      'Sinusoidal' : 'SINUSOIDAL',
+      'Triangle' : 'TRIANGLE',
+  }
+
+   # Dictionary listing the 30 stocks considered as testbench
+  stocks: {
+      'Dow Jones' : 'DIA',
+      'S&P 500' : 'SPY',
+      'NASDAQ 100' : 'QQQ',
+      'FTSE 100' : 'EZU',
+      'Nikkei 225' : 'EWJ',
+      'Google' : 'GOOGL',
+      'Apple' : 'AAPL',
+      'Facebook' : 'FB',
+      'Amazon' : 'AMZN',
+      'Microsoft' : 'MSFT',
+      'Twitter' : 'TWTR',
+      'Nokia' : 'NOK',
+      'Philips' : 'PHIA.AS',
+      'Siemens' : 'SIE.DE',
+      'Baidu' : 'BIDU',
+      'Alibaba' : 'BABA',
+      'Tencent' : '0700.HK',
+      'Sony' : '6758.T',
+      'JPMorgan Chase' : 'JPM',
+      'HSBC' : 'HSBC',
+      'CCB' : '0939.HK',
+      'ExxonMobil' : 'XOM',
+      'Shell' : 'SHEL',
+      'PetroChina' : '0857.HK',
+      'Tesla' : 'TSLA',
+      'Volkswagen' : 'VOW3.DE',
+      'Toyota' : '7203.T',
+      'Coca Cola' : 'KO',
+      'AB InBev' : 'BUD',
+      'Kirin' : '2503.T'
+  }
+
+  # Dictionary listing the 5 trading indices considered as testbench
+  indices: {
+      'Dow Jones' : 'DIA',
+      'S&P 500' : 'SPY',
+      'NASDAQ 100' : 'QQQ',
+      'FTSE 100' : 'EZU',
+      'Nikkei 225' : 'EWJ'
+  }
+
+  # Dictionary listing the 25 company stocks considered as testbench
+  companies: {
+      'Google' : 'GOOGL',
+      'Apple' : 'AAPL',
+      'Facebook' : 'FB',
+      'Amazon' : 'AMZN',
+      'Microsoft' : 'MSFT',
+      'Twitter' : 'TWTR',
+      'Nokia' : 'NOK',
+      'Philips' : 'PHIA.AS',
+      'Siemens' : 'SIE.DE',
+      'Baidu' : 'BIDU',
+      'Alibaba' : 'BABA',
+      'Tencent' : '0700.HK',
+      'Sony' : '6758.T',
+      'JPMorgan Chase' : 'JPM',
+      'HSBC' : 'HSBC',
+      'CCB' : '0939.HK',
+      'ExxonMobil' : 'XOM',
+      'Shell' : 'SHEL',
+      'PetroChina' : '0857.HK',
+      'Tesla' : 'TSLA',
+      'Volkswagen' : 'VOW3.DE',
+      'Toyota' : '7203.T',
+      'Coca Cola' : 'KO',
+
+      'AB InBev' : 'ABI.BR',
+      'Kirin' : '2503.T',
+      'Gamestop' : 'GME'
+  }
+
+  context: {
+  }
+
+  # observationSpace: 349 # 1 + (stateLength-1)*(4 + len(context))
+
+  # Dictionary listing the classical trading strategies supported
+  strategies: {
+      'Buy and Hold' : 'BuyAndHold',
+      'Sell and Hold' : 'SellAndHold',
+      'Trend Following Moving Averages' : 'MovingAveragesTF',
+      'Mean Reversion Moving Averages' : 'MovingAveragesMR'
+  }
+
+  # Dictionary listing the AI trading strategies supported
+  strategiesAI: {
+      'TDQN' : 'TDQN',
+      'TDRQN': 'TDRQN'
+  }
+
+  # set output of simulator to verbose
+  verbose: true
+
+  # set simulator to plot training results
+  plotTraining: true
+
+  # set simulator to render the trading environment
+  rendering: true
+
+  # set simlator to output performance metrics after training and testing
+  showPerformance: true
+
+  # set simulator to save the strategy to the file system
+  saveStrategy: true

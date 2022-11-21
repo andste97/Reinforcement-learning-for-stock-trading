@@ -12,6 +12,7 @@ Institution: University of Liège
 ###############################################################################
 
 import math
+import os
 import random
 import copy
 import datetime
@@ -343,6 +344,7 @@ class TDQN:
         # Set variables from config file
         model_params = run_config["model"]
 
+        self.run_config = run_config
         self.numberOfNeurons = model_params["numberOfNeurons"]
         self.dropout = model_params["dropout"]
         self.gamma = model_params["gamma"]
@@ -781,8 +783,10 @@ class TDQN:
         trainingEnv = self.testing(trainingEnv, trainingEnv)
 
         # If required, show the rendering of the trading environment
+        figurePath = "Figures/" + self.__class__.__name__ + '_' + trainingEnv.marketSymbol + "_" + trainingEnv.startingDate + "_" + trainingEnv.endingDate + '/'
+        os.makedirs(figurePath, exist_ok=True)
         if rendering:
-            trainingEnv.render()
+            trainingEnv.render(figurePath)
 
         # If required, plot the training results
         if plotTraining:
@@ -791,10 +795,10 @@ class TDQN:
             ax.plot(performanceTrain)
             ax.plot(performanceTest)
             ax.legend(["Training", "Testing"])
-            plt.savefig(''.join(['Figures/', str(marketSymbol), '_TrainingTestingPerformance', '.png']))
+            plt.savefig(''.join([figurePath, str(marketSymbol), '_TrainingTestingPerformance', '.png']))
             #plt.show()
             for i in range(len(trainingEnvList)):
-                self.plotTraining(score[i][:episode], marketSymbol)
+                self.plotTraining(score[i][:episode], marketSymbol, figurePath)
 
         # If required, print the strategy performance in a table
         if showPerformance:
@@ -853,8 +857,10 @@ class TDQN:
 
         # If required, show the rendering of the trading environment
         if rendering:
+            figurePath = "Figures/" + self.__class__.__name__ + '_' + trainingEnv.marketSymbol + "_" + trainingEnv.startingDate + "_" + trainingEnv.endingDate + '/'
+            os.makedirs(figurePath, exist_ok=True)
             testingEnv.render()
-            self.plotQValues(QValues0, QValues1, testingEnv.marketSymbol)
+            self.plotQValues(QValues0, QValues1, testingEnv.marketSymbol, figurePath)
 
         # If required, print the strategy performance in a table
         if showPerformance:
@@ -864,7 +870,7 @@ class TDQN:
         return testingEnv
 
 
-    def plotTraining(self, score, marketSymbol):
+    def plotTraining(self, score, marketSymbol, figurePath):
         """
         GOAL: Plot the training phase results
               (score, sum of rewards).
@@ -878,11 +884,11 @@ class TDQN:
         fig = plt.figure()
         ax1 = fig.add_subplot(111, ylabel='Total reward collected', xlabel='Episode')
         ax1.plot(score)
-        plt.savefig(''.join(['Figures/', str(marketSymbol), 'TrainingResults', '.png']))
+        plt.savefig(''.join([figurePath, str(marketSymbol), '_TrainingResults', '.png']))
         #plt.show()
 
     
-    def plotQValues(self, QValues0, QValues1, marketSymbol):
+    def plotQValues(self, QValues0, QValues1, marketSymbol, figurePath):
         """
         Plot sequentially the Q values related to both actions.
         
@@ -898,7 +904,7 @@ class TDQN:
         ax1.plot(QValues0)
         ax1.plot(QValues1)
         ax1.legend(['Short', 'Long'])
-        plt.savefig(''.join(['Figures/', str(marketSymbol), '_QValues', '.png']))
+        plt.savefig(''.join([figurePath, str(marketSymbol), '_QValues', '.png']))
         #plt.show()
 
 

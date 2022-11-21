@@ -488,6 +488,7 @@ class TDRQN:
         else:
             state[3] = [0 for x in volumes]
 
+        state[-1] = [state[-1]]
         # Process the state structure to obtain the appropriate format
         state = [item for sublist in state for item in sublist]
 
@@ -634,7 +635,7 @@ class TDRQN:
             # Set back the Deep Neural Network in evaluation mode
             self.policyNetwork.eval()
 
-    def training(self, trainingEnv, trainingParameters=[],
+    def training(self, trainingEnv, context = {}, trainingParameters=[],
                  verbose=False, rendering=False, plotTraining=False, showPerformance=False):
         """
         GOAL: Train the RL trading agent by interacting with its trading environment.
@@ -674,7 +675,7 @@ class TDRQN:
             money = trainingEnv.data['Money'][0]
             stateLength = trainingEnv.stateLength
             transactionCosts = trainingEnv.transactionCosts
-            testingEnv = TradingEnv(marketSymbol, startingDate, endingDate, money, stateLength, transactionCosts)
+            testingEnv = TradingEnv(marketSymbol, startingDate, endingDate, money, {}, stateLength, transactionCosts)
             performanceTest = []
 
         try:
