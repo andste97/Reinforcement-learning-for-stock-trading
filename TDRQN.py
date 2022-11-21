@@ -12,6 +12,7 @@ Institution: University of Liège
 ###############################################################################
 
 import math
+import os
 import random
 import copy
 import datetime
@@ -19,6 +20,8 @@ import datetime
 import numpy as np
 
 from collections import deque
+
+import yaml
 from tqdm import tqdm
 from matplotlib import pyplot as plt
 import torch
@@ -31,6 +34,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tradingPerformance import PerformanceEstimator
 from dataAugmentation import DataAugmentation
 from tradingEnv import TradingEnv
+
 
 # ###############################################################################
 # ################################ Global variables #############################
@@ -71,7 +75,6 @@ from tradingEnv import TradingEnv
 
 # Default paramter related to the hardware acceleration (CUDA)
 # GPUNumber = 0
-
 
 
 ###############################################################################
@@ -267,8 +270,7 @@ class TDRQN:
     GOAL: Implementing an intelligent trading agent based on the DQN
           Reinforcement Learning algorithm.
 
-    VARIABLES:
-                - model_params: Path to configuration file containing all env and model params
+    VARIABLES:  - model_params: Path to configuration file containing all env and model params
                 - device: Hardware specification (CPU or GPU).
                 - gamma: Discount factor of the DQN algorithm.
                 - learningRate: Learning rate of the ADAM optimizer.
@@ -323,7 +325,7 @@ class TDRQN:
         INPUTS: - observationSpace: Size of the RL observation space.
                 - actionSpace: Size of the RL action space.
                 - run_config: Path to configuration file containing all env and model params
-        Other inputs specified by configuration file:
+                - Other inputs specified by configuration file:
                 - numberOfNeurons: Number of neurons per layer in the Deep Neural Network.
                 - dropout: Droupout probability value (handling of overfitting).
                 - gamma: Discount factor of the DQN algorithm.
@@ -343,6 +345,7 @@ class TDRQN:
         # Set variables from config file
         model_params = run_config["model"]
 
+        self.run_config = run_config
         self.numberOfNeurons = model_params["numberOfNeurons"]
         self.dropout = model_params["dropout"]
         self.gamma = model_params["gamma"]
@@ -356,7 +359,7 @@ class TDRQN:
         self.capacity = model_params["capacity"]
         self.batchSize = model_params["batchSize"]
         self.L2Factor = model_params["L2Factor"]
-        self.alpha =  model_params["alpha"]
+        self.alpha = model_params["alpha"]
         self.filterOrder = model_params["filterOrder"]
         self.gradientClipping = model_params["gradientClipping"]
         self.rewardClipping = model_params["rewardClipping"]
@@ -399,7 +402,8 @@ class TDRQN:
         self.writer = SummaryWriter('runs/' + run_time,
                                     comment='strategy: TDRQN')
         self.writer.add_text("TDRQN" + run_time, "Model-parameters: \n" + str(model_params) + "\n \n"
-                              "Environment-parameters: " + str(run_config["environment"]))
+                                                                                              "Environment-parameters: " + str(
+            run_config["environment"]))
         # using add_hparams for logging hyperparameters somehow does not seem to work
 
     def getNormalizationCoefficients(self, tradingEnv):
@@ -450,10 +454,10 @@ class TDRQN:
         """
 
         # Normalization of the RL state
-        closePrices = [state[0][i] for i in range(len(state[0]))]
-        lowPrices = [state[1][i] for i in range(len(state[1]))]
-        highPrices = [state[2][i] for i in range(len(state[2]))]
-        volumes = [state[3][i] for i in range(len(state[3]))]
+        closePrices = state[0]
+        lowPrices = state[1]
+        highPrices = state[2]
+        volumes = state[3]
 
         # 1. Close price => returns => MinMax normalization
         returns = [(closePrices[i] - closePrices[i - 1]) / closePrices[i - 1] for i in range(1, len(closePrices))]
@@ -487,11 +491,16 @@ class TDRQN:
             state[3] = [((x - coefficients[3][0]) / (coefficients[3][1] - coefficients[3][0])) for x in volumes]
         else:
             state[3] = [0 for x in volumes]
-
-        state[-1] = [state[-1]]
+        ### turn context into returns for each of them and min max them
+        for ii in range(4, len(state) - 1):
+            context_series = state[ii]
+            returns = [(context_series[i] - context_series[i - 1]) / context_series[i - 1] for i in
+                       range(1, len(context_series))]
+            max_return = max(returns)
+            state[ii] = [(x / (max_return)) for x in returns]
         # Process the state structure to obtain the appropriate format
+        state[-1] = [state[-1]]
         state = [item for sublist in state for item in sublist]
-
         return state
 
     def processReward(self, reward):
@@ -635,7 +644,7 @@ class TDRQN:
             # Set back the Deep Neural Network in evaluation mode
             self.policyNetwork.eval()
 
-    def training(self, trainingEnv, context = {}, trainingParameters=[],
+    def training(self, trainingEnv, context, trainingParameters=[],
                  verbose=False, rendering=False, plotTraining=False, showPerformance=False):
         """
         GOAL: Train the RL trading agent by interacting with its trading environment.
@@ -675,7 +684,8 @@ class TDRQN:
             money = trainingEnv.data['Money'][0]
             stateLength = trainingEnv.stateLength
             transactionCosts = trainingEnv.transactionCosts
-            testingEnv = TradingEnv(marketSymbol, startingDate, endingDate, money, {}, stateLength, transactionCosts)
+            testingEnv = TradingEnv(marketSymbol, startingDate, endingDate, money, context, stateLength,
+                                    transactionCosts)
             performanceTest = []
 
         try:
@@ -771,7 +781,9 @@ class TDRQN:
 
         # If required, show the rendering of the trading environment
         if rendering:
-            trainingEnv.render()
+            figurePath = "Figures/" + self.__class__.__name__ + '_' + trainingEnv.marketSymbol + "_" + trainingEnv.startingDate + "_" + trainingEnv.endingDate + '/'
+            os.makedirs(figurePath, exist_ok=True)
+            trainingEnv.render(figurePath)
 
         # If required, plot the training results
         if plotTraining:
@@ -780,10 +792,10 @@ class TDRQN:
             ax.plot(performanceTrain)
             ax.plot(performanceTest)
             ax.legend(["Training", "Testing"])
-            plt.savefig(''.join(['Figures/', str(marketSymbol), '_TrainingTestingPerformance', '.png']))
+            plt.savefig(''.join([figurePath, str(marketSymbol), '_TrainingTestingPerformance', '.png']))
             # plt.show()
             for i in range(len(trainingEnvList)):
-                self.plotTraining(score[i][:episode], marketSymbol)
+                self.plotTraining(score[i][:episode], marketSymbol, figurePath)
 
         # If required, print the strategy performance in a table
         if showPerformance:
@@ -840,8 +852,10 @@ class TDRQN:
 
         # If required, show the rendering of the trading environment
         if rendering:
+            figurePath = "Figures/" + self.__class__.__name__ + '_' + trainingEnv.marketSymbol + "_" + trainingEnv.startingDate + "_" + trainingEnv.endingDate + '/'
+            os.makedirs(figurePath, exist_ok=True)
             testingEnv.render()
-            self.plotQValues(QValues0, QValues1, testingEnv.marketSymbol)
+            self.plotQValues(QValues0, QValues1, testingEnv.marketSymbol, figurePath)
 
         # If required, print the strategy performance in a table
         if showPerformance:
@@ -850,7 +864,7 @@ class TDRQN:
 
         return testingEnv
 
-    def plotTraining(self, score, marketSymbol):
+    def plotTraining(self, score, marketSymbol, figurePath):
         """
         GOAL: Plot the training phase results
               (score, sum of rewards).
@@ -864,10 +878,10 @@ class TDRQN:
         fig = plt.figure()
         ax1 = fig.add_subplot(111, ylabel='Total reward collected', xlabel='Episode')
         ax1.plot(score)
-        plt.savefig(''.join(['Figures/', str(marketSymbol), 'TrainingResults', '.png']))
+        plt.savefig(''.join([figurePath, str(marketSymbol), '_TrainingResults', '.png']))
         # plt.show()
 
-    def plotQValues(self, QValues0, QValues1, marketSymbol):
+    def plotQValues(self, QValues0, QValues1, marketSymbol, figurePath):
         """
         Plot sequentially the Q values related to both actions.
 
@@ -883,7 +897,7 @@ class TDRQN:
         ax1.plot(QValues0)
         ax1.plot(QValues1)
         ax1.legend(['Short', 'Long'])
-        plt.savefig(''.join(['Figures/', str(marketSymbol), '_QValues', '.png']))
+        plt.savefig(''.join([figurePath, str(marketSymbol), '_QValues', '.png']))
         # plt.show()
 
     def plotExpectedPerformance(self, trainingEnv, trainingParameters=[], iterations=10):
@@ -914,7 +928,7 @@ class TDRQN:
         # Initialization of the testing trading environment
         marketSymbol = trainingEnv.marketSymbol
         startingDate = trainingEnv.endingDate
-        endingDate = '2020-1-1'
+        endingDate = ending_date
         money = trainingEnv.data['Money'][0]
         stateLength = trainingEnv.stateLength
         transactionCosts = trainingEnv.transactionCosts

@@ -783,9 +783,9 @@ class TDQN:
         trainingEnv = self.testing(trainingEnv, trainingEnv)
 
         # If required, show the rendering of the trading environment
-        figurePath = "Figures/" + self.__class__.__name__ + '_' + trainingEnv.marketSymbol + "_" + trainingEnv.startingDate + "_" + trainingEnv.endingDate + '/'
-        os.makedirs(figurePath, exist_ok=True)
         if rendering:
+            figurePath = "Figures/" + self.__class__.__name__ + '_' + trainingEnv.marketSymbol + "_" + trainingEnv.startingDate + "_" + trainingEnv.endingDate + '/'
+            os.makedirs(figurePath, exist_ok=True)
             trainingEnv.render(figurePath)
 
         # If required, plot the training results
