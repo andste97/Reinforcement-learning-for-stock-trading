@@ -145,15 +145,16 @@ environment:
   }
 
   context: {
-    'USD-EUR' : 'EUR=X',
-    'S&P 500' : '^GSPC', 
-    'VIX' : '^VIX',
-    'Oil' : 'CL=F',
-    'Gold' : 'GC=F',
-    'US Treasury 5 years yield' : '^FVX',
-    'US Treasury 10 years yield' : '^TNX',
-    'US Treasury 30 years yield' : '^TYX'
-    
+    'USD-EUR': 'EUR=X',
+    'S&P 500': '^GSPC',
+    'VIX': '^VIX',
+    'Oil': 'CL=F',
+    'Gold': 'GC=F',
+    'US Treasury 5 years yield': '^FVX',
+    'US Treasury 10 years yield': '^TNX',
+    'US Treasury 30 years yield': '^TYX'
+  }
+
   # observationSpace: 349 # 1 + (stateLength-1)*(4 + len(context))
 
   # Dictionary listing the classical trading strategies supported
