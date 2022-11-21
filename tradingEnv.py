@@ -407,7 +407,7 @@ class TradingEnv(gym.Env):
         return self.state, self.reward, self.done, self.info
 
 
-    def render(self):
+    def render(self, figurePath: str = None):
         """
         GOAL: Illustrate graphically the trading activity, by plotting
               both the evolution of the stock market price and the 
@@ -445,7 +445,12 @@ class TradingEnv(gym.Env):
         # Generation of the two legends and plotting
         ax1.legend(["Price", "Long",  "Short"])
         ax2.legend(["Capital", "Long", "Short"])
-        plt.savefig(''.join(['Figures/', str(self.marketSymbol), '_Rendering', '.png']))
+        if figurePath:
+            os.makedirs(figurePath, exist_ok=True)
+            plt.savefig(''.join([figurePath, str(self.marketSymbol), '_Rendering', '.png']))
+        else:
+            os.makedirs('Figures/', exist_ok=True)
+            plt.savefig(''.join(['Figures/', str(self.marketSymbol), '_Rendering', '.png']))
         #plt.show()
 
 

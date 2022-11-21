@@ -37,7 +37,7 @@ if(__name__ == '__main__'):
 
 
     # Training and testing of the trading strategy specified for the stock (market) specified, using config from configuration file
-    simulator.simulateNewStrategy("TDRQN", stock)
+    simulator.simulateNewStrategy("TDQN", stock)
 
     # simulator.displayTestbench()
     # simulator.analyseTimeSeries(stock)
