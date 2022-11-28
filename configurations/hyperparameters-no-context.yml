@@ -38,9 +38,9 @@ model:
 environment:
   # Variables defining the default trading horizon
 
-  startingDate: '2006-1-1'
-  endingDate: '2022-11-1'
-  splittingDate: '2019-1-1'
+  startingDate: '2012-1-1'
+  endingDate: '2020-1-1'
+  splitingDate: '2018-1-1'
 
   
   # Variables defining the default observation and state spaces
@@ -72,36 +72,38 @@ environment:
 
    # Dictionary listing the 30 stocks considered as testbench
   stocks: {
-      'Dow Jones' : 'DIA',
-      'S&P 500' : 'SPY',
-      'NASDAQ 100' : 'QQQ',
-      'FTSE 100' : 'EZU',
-      'Nikkei 225' : 'EWJ',
+      #'Dow Jones' : 'DIA',
+      #'S&P 500' : 'SPY',
+      #'#NASDAQ 100' : 'QQQ',
+      #'FTSE 100' : 'EZU',
+    #   'Nikkei 225' : 'EWJ',
       'Google' : 'GOOGL',
       'Apple' : 'AAPL',
-      'Facebook' : 'FB',
-      'Amazon' : 'AMZN',
-      'Microsoft' : 'MSFT',
-      'Twitter' : 'TWTR',
-      'Nokia' : 'NOK',
-      'Philips' : 'PHIA.AS',
-      'Siemens' : 'SIE.DE',
+    #   'Facebook' : 'FB',
+    #   'Amazon' : 'AMZN',
+    #   'Microsoft' : 'MSFT',
+    #   'Twitter' : 'TWTR',
+      'IBM' : 'IBM',
+    #   'Philips' : 'PHIA.AS',
+    #   'Siemens' : 'SIE.DE',
       'Baidu' : 'BIDU',
-      'Alibaba' : 'BABA',
-      'Tencent' : '0700.HK',
-      'Sony' : '6758.T',
+    #   'Alibaba' : 'BABA',
+    #   'Tencent' : '0700.HK',
+    #   'Sony' : '6758.T',
       'JPMorgan Chase' : 'JPM',
-      'HSBC' : 'HSBC',
-      'CCB' : '0939.HK',
+    #   'HSBC' : 'HSBC',
+      'BlackRock' : BLK,
+    #   'CCB' : '0939.HK',
       'ExxonMobil' : 'XOM',
-      'Shell' : 'SHEL',
-      'PetroChina' : '0857.HK',
-      'Tesla' : 'TSLA',
+    #   'Shell' : 'SHEL',
+    #   'PetroChina' : '0857.HK',
+    #   'Tesla' : 'TSLA',
       'Volkswagen' : 'VOW3.DE',
-      'Toyota' : '7203.T',
+      'Toyota' : 'TM',
       'Coca Cola' : 'KO',
-      'AB InBev' : 'BUD',
-      'Kirin' : '2503.T'
+      'McDonalds' : 'MCD'
+    #   'AB InBev' : 'BUD',
+    #   'Kirin' : '2503.T'
   }
 
   # Dictionary listing the 5 trading indices considered as testbench
@@ -115,33 +117,38 @@ environment:
 
   # Dictionary listing the 25 company stocks considered as testbench
   companies: {
+      #'Dow Jones' : 'DIA',
+      #'S&P 500' : 'SPY',
+      #'#NASDAQ 100' : 'QQQ',
+      #'FTSE 100' : 'EZU',
+    #   'Nikkei 225' : 'EWJ',
       'Google' : 'GOOGL',
       'Apple' : 'AAPL',
-      'Facebook' : 'FB',
-      'Amazon' : 'AMZN',
-      'Microsoft' : 'MSFT',
-      'Twitter' : 'TWTR',
-      'Nokia' : 'NOK',
-      'Philips' : 'PHIA.AS',
-      'Siemens' : 'SIE.DE',
+    #   'Facebook' : 'FB',
+    #   'Amazon' : 'AMZN',
+    #   'Microsoft' : 'MSFT',
+    #   'Twitter' : 'TWTR',
+      'IBM' : 'IBM',
+    #   'Philips' : 'PHIA.AS',
+    #   'Siemens' : 'SIE.DE',
       'Baidu' : 'BIDU',
-      'Alibaba' : 'BABA',
-      'Tencent' : '0700.HK',
-      'Sony' : '6758.T',
+    #   'Alibaba' : 'BABA',
+    #   'Tencent' : '0700.HK',
+    #   'Sony' : '6758.T',
       'JPMorgan Chase' : 'JPM',
-      'HSBC' : 'HSBC',
-      'CCB' : '0939.HK',
+    #   'HSBC' : 'HSBC',
+      'BlackRock' : BLK,
+    #   'CCB' : '0939.HK',
       'ExxonMobil' : 'XOM',
-      'Shell' : 'SHEL',
-      'PetroChina' : '0857.HK',
-      'Tesla' : 'TSLA',
+    #   'Shell' : 'SHEL',
+    #   'PetroChina' : '0857.HK',
+    #   'Tesla' : 'TSLA',
       'Volkswagen' : 'VOW3.DE',
-      'Toyota' : '7203.T',
+      'Toyota' : 'TM',
       'Coca Cola' : 'KO',
-
-      'AB InBev' : 'ABI.BR',
-      'Kirin' : '2503.T',
-      'Gamestop' : 'GME'
+      'McDonalds' : 'MCD'
+    #   'AB InBev' : 'BUD',
+    #   'Kirin' : '2503.T'
   }
 
   context: {

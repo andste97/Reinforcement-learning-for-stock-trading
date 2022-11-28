@@ -11,7 +11,7 @@ model:
   experiencesRequired: 1000
 
   # Default parameters related to the Deep Neural Network
-  numberOfNeurons: 128
+  numberOfNeurons: 512
   dropout: 0.2
 
   # Default parameters related to the Epsilon-Greedy exploration technique
@@ -38,13 +38,13 @@ model:
 environment:
   # Variables defining the default trading horizon
 
-  startingDate: '2010-1-1'
-  endingDate: '2022-11-1'
-  splittingDate: '2018-1-1'
+  startingDate: '2012-1-1'
+  endingDate: '2020-1-1'
+  splitingDate: '2018-1-1'
 
-  
+
   # Variables defining the default observation and state spaces
-  stateLength: 50
+  stateLength: 30
   #observationSpace: 1 + (stateLength-1)*4 - cannot be used because it is defines code expression
   actionSpace: 2
   
@@ -59,7 +59,7 @@ environment:
   bounds: [1, 30]
   step: 1
 
-  numberOfEpisodes: 20
+  numberOfEpisodes: 50
 
   
   # Dictionary listing the fictive stocks supported
