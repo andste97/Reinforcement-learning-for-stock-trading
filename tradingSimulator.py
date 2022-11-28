@@ -333,7 +333,7 @@ class TradingSimulator:
 
         # Training of the trading strategy
 
-        trainingEnv = tradingStrategy.training(trainingEnv, self.context, trainingParameters=trainingParameters,
+        trainingEnv = tradingStrategy.training(trainingEnv, context = self.context, trainingParameters=trainingParameters,
                                                verbose=self.verbose, rendering=self.rendering,
                                                plotTraining=self.plotTraining, showPerformance=self.showPerformance)
 
