@@ -1,0 +1,11 @@
+,Performance Indicator,Google,Apple,IBM,Baidu,JPMorgan Chase,BlackRock,ExxonMobil,Volkswagen,Toyota,Coca Cola,McDonalds
+0,Profit & Loss (P&L),186839,551442,13636,4621,-41026,59923,81195,776,22355,-7706,131687
+1,Annualized Return,15.45%,25.31%,10.34%,15.68%,-14.56%,12.84%,32.57%,6.46%,8.67%,-12.08%,17.14%
+2,Annualized Volatility,29.98%,31.38%,24.58%,58.32%,29.54%,27.65%,35.35%,36.16%,23.72%,19.75%,17.89%
+3,Sharpe Ratio,0.579,0.974,0.455,0.303,-0.437,0.512,1.172,0.186,0.390,-0.553,1.091
+4,Sortino Ratio,0.803,1.437,0.570,0.498,-0.688,0.742,1.938,0.294,0.580,-0.852,1.641
+5,Maximum DrawDown,36.72%,28.53%,19.92%,71.33%,46.74%,45.27%,24.37%,51.03%,36.89%,38.36%,17.67%
+6,Maximum DrawDown Duration,239 days,114 days,117 days,428 days,615 days,229 days,75 days,321 days,179 days,545 days,43 days
+7,Profitability,66.67%,100.00%,100.00%,30.77%,41.30%,100.00%,66.67%,100.00%,66.67%,37.74%,100.00%
+8,Ratio Average Profit/Loss,1.041,inf,inf,2.316,1.082,inf,12.072,inf,1.046,0.825,inf
+9,Skewness,-0.114,0.045,-0.863,2.099,0.590,-0.160,0.293,0.493,0.025,0.706,-0.007
